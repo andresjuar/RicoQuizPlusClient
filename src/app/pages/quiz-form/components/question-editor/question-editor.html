@@ -1,0 +1,61 @@
+<article class="q" [formGroup]="form()">
+  <header class="q__head">
+    <span class="q__num">Pregunta {{ index() + 1 }}</span>
+    <div class="q__tools">
+      <button type="button" class="icon-btn" aria-label="Subir pregunta"
+        [disabled]="index() === 0" (click)="moveUp.emit()">↑</button>
+      <button type="button" class="icon-btn" aria-label="Bajar pregunta"
+        [disabled]="index() === total() - 1" (click)="moveDown.emit()">↓</button>
+      <button type="button" class="icon-btn" aria-label="Duplicar pregunta" (click)="duplicate.emit()">⧉</button>
+      <button type="button" class="icon-btn icon-btn--danger" aria-label="Eliminar pregunta" (click)="remove.emit()">✕</button>
+    </div>
+  </header>
+
+  <div class="field">
+    <label [for]="'q-' + index()">Pregunta</label>
+    <textarea class="input" rows="2" formControlName="question" [id]="'q-' + index()"
+      placeholder="¿Cuál es el océano más grande del planeta?"></textarea>
+    @if (form().controls.question.touched && form().controls.question.invalid) {
+      <span class="field__error">
+        @if (form().controls.question.hasError('required')) { Escribe la pregunta. }
+        @else { Máximo 300 caracteres. }
+      </span>
+    }
+  </div>
+
+  <div class="field">
+    <label>Opciones <small>· marca la correcta con ✓</small></label>
+    <div class="opts">
+      @for (opt of options.controls; track opt; let i = $index) {
+        <div class="opt" [style.--answer]="'var(--answer-' + i + ')'"
+          [class.is-correct]="form().controls.correctIndex.value === i">
+          <span class="opt__icon" aria-hidden="true">{{ icons[i] }}</span>
+          <input class="opt__input" [formControl]="opt"
+            [placeholder]="'Opción ' + (i + 1)" [attr.aria-label]="'Opción ' + (i + 1)" />
+          <button type="button" class="opt__mark" aria-label="Marcar como correcta"
+            [attr.aria-pressed]="form().controls.correctIndex.value === i" (click)="setCorrect(i)">✓</button>
+          @if (options.length > minOptions) {
+            <button type="button" class="opt__remove" aria-label="Quitar opción" (click)="removeOption(i)">✕</button>
+          }
+        </div>
+      }
+    </div>
+
+    @if (options.length < maxOptions) {
+      <button type="button" class="add-opt link" (click)="addOption()">+ Agregar opción</button>
+    }
+    @if (optionsInvalid) {
+      <span class="field__error">Completa todas las opciones.</span>
+    }
+    @if (form().controls.correctIndex.touched && form().controls.correctIndex.invalid) {
+      <span class="field__error">Marca cuál es la respuesta correcta.</span>
+    }
+  </div>
+
+  <div class="field q__time">
+    <label [for]="'t-' + index()">Tiempo límite</label>
+    <select class="input" formControlName="timeLimitSeconds" [id]="'t-' + index()">
+      @for (t of timeOptions; track t) { <option [ngValue]="t">{{ t }} segundos</option> }
+    </select>
+  </div>
+</article>

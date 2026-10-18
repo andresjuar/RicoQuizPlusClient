@@ -1,1 +1,86 @@
-<p>landing works!</p>
+<div class="container landing">
+  <section class="hero">
+    <div class="hero__copy">
+<!--       <span class="badge hero__badge">⚡ Trivia multijugador en vivo</span>
+    -->      
+    <h1 class="hero__title">Tu próxima gran partida empieza aquí.</h1>
+      <p class="hero__lead">
+        Responde rápido, escala el ranking y celebra con tu equipo en tiempo real.
+        Crea quizzes de cualquier tema con ayuda de IA.
+      </p>
+      <ul class="hero__chips">
+        @for (c of categories; track c.id) {
+          <li><a class="chip" routerLink="/explore" [queryParams]="{ category: c.id }">{{ c.emoji }} {{ c.label }}</a></li>
+        }
+      </ul>
+    </div>
+
+    <div class="hero__panel card">
+      @if (auth.user(); as user) {
+        <p class="eyebrow">Hola, {{ user.displayName }}</p>
+        <a class="btn btn--light btn--block" routerLink="/dashboard">Ir a mi panel</a>
+      } @else {
+        <button type="button" class="btn btn--light btn--block" (click)="loginWithGoogle()">
+          <span class="g-icon" aria-hidden="true">G</span> Iniciar sesión con Google
+        </button>
+        <p class="hero__note">¿Tienes cuenta con correo? <a class="link" routerLink="/login">Inicia sesión</a></p>
+      }
+
+      <div class="divider">{{ auth.isAuthenticated() ? 'o únete a una partida' : 'o entra sin cuenta' }}</div>
+
+      <form class="stack" [formGroup]="joinForm" (ngSubmit)="join()" novalidate>
+        <div class="field">
+          <label for="room-code">Código de sala</label>
+          <input id="room-code" class="input code-input" formControlName="code"
+            placeholder="ABCD" maxlength="4" autocomplete="off" spellcheck="false" />
+          @if (joinForm.controls.code.touched && joinForm.controls.code.invalid) {
+            <span class="field__error">El código son 4 letras.</span>
+          }
+          @if (joinError()) {
+            <span class="field__error" role="alert">{{ joinError() }}</span>
+          }
+        </div>
+
+        <button type="submit" class="btn btn--accent btn--block" [disabled]="joining()">
+          {{ joining() ? 'Buscando sala…' : '→ Unirse' }}
+        </button>
+      </form>
+
+      <p class="hero__note">¿Quieres ser quien presente?</p>
+      <a class="btn btn--ghost btn--block" routerLink="/quizzes/new">+ Crear un quiz</a>
+    </div>
+  </section>
+
+  <section>
+    <header class="section-head">
+      <div>
+        <p class="eyebrow">Selección RicoQuiz+</p>
+        <h2>Quizzes populares</h2>
+      </div>
+      <a class="link" routerLink="/explore">Ver todos →</a>
+    </header>
+
+    <div class="grid-cards">
+      @if (popular(); as quizzes) {
+        @for (quiz of quizzes; track quiz._id) {
+          <app-quiz-card [quiz]="quiz" (action)="playQuiz($event)" />
+        }
+      } @else {
+        @for (i of [1, 2, 3]; track i) { <div class="skeleton"></div> }
+      }
+    </div>
+  </section>
+
+  <section id="como-jugar">
+    <header class="section-head"><h2>¿Cómo se juega?</h2></header>
+    <ol class="steps">
+      @for (step of steps; track step.title; let i = $index) {
+        <li class="steps__item card">
+          <span class="steps__num">{{ i + 1 }}</span>
+          <h3>{{ step.title }}</h3>
+          <p>{{ step.text }}</p>
+        </li>
+      }
+    </ol>
+  </section>
+</div>

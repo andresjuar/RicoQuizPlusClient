@@ -1,0 +1,31 @@
+<article class="qc">
+  <div class="qc__cover" [style.--tone]="category().color">
+    @if (quiz().coverImageUrl; as url) {
+      <img [src]="url" [alt]="quiz().title" loading="lazy" />
+    } @else {
+      <span class="qc__emoji" aria-hidden="true">{{ category().emoji }}</span>
+    }
+
+    <span class="qc__tag"><span class="qc__dot"></span>{{ category().label }}</span>
+
+    <button type="button" class="qc__fav" [class.is-active]="favorite()"
+      [attr.aria-pressed]="favorite()" aria-label="Marcar como favorito"
+      (click)="favorite.set(!favorite())">{{ favorite() ? '♥' : '♡' }}</button>
+
+    @if (quiz().generatedByAI) { <span class="qc__ai">✦ IA</span> }
+    @if (!quiz().isPublic) { <span class="qc__private">🔒 Privado</span> }
+  </div>
+
+  <div class="qc__body">
+    <h3 class="qc__title">{{ quiz().title }}</h3>
+    <p class="qc__meta">⏱ {{ quiz().questions.length }} preguntas · {{ minutes() }} min</p>
+    @if (quiz().description) { <p class="qc__desc">{{ quiz().description }}</p> }
+  </div>
+
+  <footer class="qc__footer">
+    <button type="button" class="btn btn--accent btn--block" (click)="action.emit(quiz())">
+      ▶ {{ actionLabel() }}
+    </button>
+    <ng-content />
+  </footer>
+</article>

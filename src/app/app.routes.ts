@@ -3,6 +3,7 @@ import { MainLayout } from './layouts/main-layout/main-layout';
 import { authGuard } from './shared/guards/auth.guard';
 import { guestGuard } from './shared/guards/guest.guard';
 import { leaveGameGuard } from './shared/guards/leave-game.guard';
+import { unsavedChangesGuard } from './shared/guards/unsaved-changes.guard';
 
 export const routes: Routes = [
   {
@@ -22,8 +23,8 @@ export const routes: Routes = [
         children: [
           { path: 'dashboard', loadComponent: () => import('./pages/dashboard/dashboard').then(m => m.Dashboard), title: 'Inicio' },
           { path: 'quizzes/mine', loadComponent: () => import('./pages/my-quizzes/my-quizzes').then(m => m.MyQuizzes), title: 'Mis quizzes' },
-          { path: 'quizzes/new', loadComponent: () => import('./pages/quiz-form/quiz-form').then(m => m.QuizForm), title: 'Nuevo quiz' },
-          { path: 'quizzes/:id/edit', loadComponent: () => import('./pages/quiz-form/quiz-form').then(m => m.QuizForm), title: 'Editar quiz' },
+          { path: 'quizzes/new', canDeactivate: [unsavedChangesGuard], loadComponent: () => import('./pages/quiz-form/quiz-form').then(m => m.QuizForm), title: 'Nuevo quiz' },
+          { path: 'quizzes/:id/edit', canDeactivate: [unsavedChangesGuard], loadComponent: () => import('./pages/quiz-form/quiz-form').then(m => m.QuizForm), title: 'Editar quiz' },
           { path: 'history', loadComponent: () => import('./pages/history/history').then(m => m.History), title: 'Historial' },
           { path: 'room/new', loadComponent: () => import('./pages/new-room/new-room').then(m => m.NewRoom), title: 'Nueva partida' },
         ],

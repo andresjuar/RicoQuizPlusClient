@@ -1,0 +1,29 @@
+@use 'mixins' as *;
+
+.auth {
+  display: flex;
+  justify-content: center;
+  padding: var(--sp-6) var(--sp-4);
+}
+
+.auth__card {
+  @include glass(var(--radius-xl));
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-5);
+  width: 100%;
+  max-width: 440px;
+  padding: var(--sp-6);
+
+  @include up(sm) { padding: var(--sp-8); }
+}
+
+.auth__header { display: flex; flex-direction: column; gap: var(--sp-1); }
+.auth__title { font-size: var(--fs-xl); line-height: 1.2; }
+.auth__subtitle { color: var(--text-muted); font-size: var(--fs-sm); }
+
+.auth__footer {
+  text-align: center;
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+}

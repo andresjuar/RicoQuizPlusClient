@@ -1,0 +1,92 @@
+@use 'mixins' as *;
+
+.landing {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-8);
+}
+
+.hero {
+  display: grid;
+  gap: var(--sp-6);
+  align-items: center;
+
+  @include up(lg) { grid-template-columns: 1.2fr 1fr; gap: var(--sp-8); }
+
+  &__copy { display: flex; flex-direction: column; gap: var(--sp-4); }
+
+  &__badge {
+    align-self: flex-start;
+    background: rgb(245 213 101 / 0.15);
+    color: var(--accent);
+  }
+
+  &__title {
+    font-size: var(--fs-2xl);
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+
+    @include up(md) { font-size: var(--fs-3xl); }
+  }
+
+  &__lead { color: var(--text-muted); max-width: 52ch; }
+
+  &__chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sp-2);
+    list-style: none;
+  }
+
+  &__panel {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-4);
+    width: 100%;
+    max-width: 440px;
+    padding: var(--sp-6);
+    justify-self: center;
+
+    @include up(lg) { justify-self: end; }
+  }
+
+  &__note {
+    text-align: center;
+    font-size: var(--fs-sm);
+    color: var(--text-muted);
+  }
+}
+
+.code-input {
+  text-align: center;
+  text-transform: uppercase;
+  font-size: var(--fs-xl);
+  font-weight: 700;
+  letter-spacing: 0.4em;
+}
+
+.steps {
+  display: grid;
+  gap: var(--sp-4);
+  list-style: none;
+
+  @include up(md) { grid-template-columns: repeat(3, 1fr); }
+
+  &__item {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-2);
+
+    h3 { font-size: var(--fs-lg); }
+    p { font-size: var(--fs-sm); color: var(--text-muted); }
+  }
+
+  &__num {
+    @include flex-center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--primary-gradient);
+    font-weight: 700;
+  }
+}

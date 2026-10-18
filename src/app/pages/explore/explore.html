@@ -1,1 +1,62 @@
-<p>explore works!</p>
+<div class="container explore">
+  <section class="hero card">
+    <div>
+      <p class="eyebrow">Encuentra tu próxima partida</p>
+      <h1 class="hero__title">Un quiz para cada curiosidad.</h1>
+      <p class="hero__lead">Elige un tema, reta a tus amigos y descubre cuánto sabes.</p>
+    </div>
+
+    <div>
+      <form class="search" role="search" (submit)="$event.preventDefault()">
+        <span class="search__icon" aria-hidden="true">⌕</span>
+        <input class="search__input" type="search" aria-label="Buscar quizzes"
+          placeholder="Busca por tema, título o categoría…"
+          [value]="search()" (input)="search.set($any($event.target).value)" />
+        <button type="submit" class="btn btn--primary">Buscar</button>
+      </form>
+
+      <p class="trending">
+        Tendencias:
+        @for (term of trending; track term; let last = $last) {
+          <button type="button" class="trending__term" (click)="search.set(term)">{{ term }}</button>
+          @if (!last) { · }
+        }
+      </p>
+    </div>
+  </section>
+
+  <div class="filters">
+    <div class="filters__chips">
+      <button type="button" class="chip" [class.is-active]="selected() === 'all'"
+        [attr.aria-pressed]="selected() === 'all'" (click)="selected.set('all')">✦ Todos</button>
+      @for (c of categories; track c.id) {
+        <button type="button" class="chip" [class.is-active]="selected() === c.id"
+          [attr.aria-pressed]="selected() === c.id" (click)="selected.set(c.id)">
+          {{ c.emoji }} {{ c.label }}
+        </button>
+      }
+    </div>
+    @if (!loading()) {
+      <span class="filters__count">{{ filtered().length }} quizzes disponibles</span>
+    }
+  </div>
+
+  @if (loading()) {
+    <div class="grid-cards">
+      @for (i of [1, 2, 3, 4]; track i) { <div class="skeleton"></div> }
+    </div>
+  } @else if (filtered().length) {
+    <div class="grid-cards">
+      @for (quiz of filtered(); track quiz._id) {
+        <app-quiz-card [quiz]="quiz" (action)="playQuiz($event)" />
+      }
+    </div>
+  } @else {
+    <div class="empty-state">
+      <span class="empty-state__icon" aria-hidden="true">🔍</span>
+      <h2>No encontramos quizzes</h2>
+      <p>Prueba con otro tema o quita los filtros.</p>
+      <button type="button" class="btn btn--ghost" (click)="clearFilters()">Limpiar filtros</button>
+    </div>
+  }
+</div>

@@ -1,0 +1,95 @@
+@use 'mixins' as *;
+
+.nf {
+  @include flex-center;
+  min-height: 100vh;
+  padding: var(--sp-4);
+}
+
+.nf__card {
+  @include glass(var(--radius-xl));
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-5);
+  width: 100%;
+  max-width: 640px;
+  padding: var(--sp-6);
+
+  @include up(sm) { padding: var(--sp-8); }
+}
+
+.nf__head { display: flex; align-items: center; justify-content: space-between; }
+
+.nf__timer {
+  @include flex-center;
+  width: 52px;
+  height: 52px;
+  border-radius: var(--radius-md);
+  background: var(--accent);
+  color: var(--text-on-light);
+  font-size: var(--fs-xl);
+  font-weight: 700;
+}
+
+.nf__title { font-size: var(--fs-xl); line-height: 1.2; @include up(md) { font-size: var(--fs-2xl); } }
+
+.nf__url {
+  display: inline-block;
+  margin-top: var(--sp-2);
+  padding: var(--sp-1) var(--sp-2);
+  border-radius: var(--radius-sm);
+  background: var(--surface-strong);
+  font-size: var(--fs-xs);
+  color: var(--text-muted);
+  word-break: break-all;
+}
+
+.nf__opts {
+  display: grid;
+  gap: var(--sp-3);
+
+  @include up(sm) { grid-template-columns: 1fr 1fr; }
+}
+
+.nf__opt {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--sp-4);
+  min-height: 110px;
+  padding: var(--sp-4);
+  border: 3px solid transparent;
+  border-radius: var(--radius-lg);
+  background: var(--answer);
+  color: #fff;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+  transition: transform var(--transition), opacity var(--transition), border-color var(--transition);
+
+  &:nth-child(3) { color: var(--text-on-light); } // amarillo: texto oscuro por contraste
+  &:hover { transform: translateY(-2px); }
+  &.is-dim { opacity: 0.35; }
+  &.is-correct { border-color: #fff; box-shadow: 0 0 0 4px var(--success); }
+}
+
+.nf__icon {
+  @include flex-center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  background: rgb(255 255 255 / 0.25);
+}
+
+.nf__reveal {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--sp-3);
+  padding: var(--sp-4);
+  border-radius: var(--radius-md);
+  background: rgb(110 224 154 / 0.12);
+  border: 1px solid rgb(110 224 154 / 0.4);
+
+  strong { color: var(--success); }
+}

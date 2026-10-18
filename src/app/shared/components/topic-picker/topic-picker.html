@@ -1,0 +1,20 @@
+<div class="topics" role="radiogroup" aria-label="Tema del quiz">
+  @for (c of categories; track c.id) {
+    <button type="button" class="chip" role="radio"
+      [class.is-active]="!custom() && value() === c.id"
+      [attr.aria-checked]="!custom() && value() === c.id"
+      [disabled]="disabled()" (click)="select(c.id)">
+      {{ c.emoji }} {{ c.label }}
+    </button>
+  }
+  <button type="button" class="chip" role="radio"
+    [class.is-active]="custom()" [attr.aria-checked]="custom()"
+    [disabled]="disabled()" (click)="chooseCustom()">✏️ Otro</button>
+</div>
+
+@if (custom()) {
+  <input class="input" maxlength="60" aria-label="Escribe el tema"
+    placeholder="Ej. Anime de los 90, química orgánica, Guadalajara…"
+    [value]="value()" [disabled]="disabled()"
+    (input)="onCustomInput($any($event.target).value)" (blur)="onTouched()" />
+}

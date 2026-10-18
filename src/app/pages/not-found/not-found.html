@@ -1,1 +1,37 @@
-<p>not-found works!</p>
+<main class="nf">
+  <div class="nf__card">
+    <header class="nf__head">
+      <span class="badge">Pregunta 404 de 404</span>
+      <span class="nf__timer" aria-hidden="true">∞</span>
+    </header>
+
+    <div>
+      <p class="eyebrow">Página no encontrada</p>
+      <h1 class="nf__title">¿Dónde está la página que buscabas?</h1>
+      <code class="nf__url">{{ url }}</code>
+    </div>
+
+    <div class="nf__opts">
+      @for (opt of options(); track opt.label; let i = $index) {
+        @if (opt.link) {
+          <a class="nf__opt" [routerLink]="opt.link" [class.is-dim]="revealed()"
+            [style.--answer]="'var(--answer-' + i + ')'">
+            <span class="nf__icon" aria-hidden="true">{{ icons[i] }}</span>{{ opt.label }}
+          </a>
+        } @else {
+          <button type="button" class="nf__opt" [class.is-correct]="revealed()"
+            [style.--answer]="'var(--answer-' + i + ')'" (click)="revealed.set(true)">
+            <span class="nf__icon" aria-hidden="true">{{ icons[i] }}</span>{{ opt.label }}
+          </button>
+        }
+      }
+    </div>
+
+    @if (revealed()) {
+      <div class="nf__reveal" role="status">
+        <p><strong>¡Correcto! +1000 pts.</strong> Esta página no existe, pero el juego sigue.</p>
+        <a class="btn btn--accent" [routerLink]="homeLink()">Volver al inicio</a>
+      </div>
+    }
+  </div>
+</main>
