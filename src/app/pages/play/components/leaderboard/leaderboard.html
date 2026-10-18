@@ -1,0 +1,25 @@
+<section class="lb">
+  <header class="lb__head">
+    <div>
+      <span class="eyebrow">Marcador</span>
+      <h1 class="lb__title">Clasificación</h1>
+    </div>
+    <span class="lb__count">{{ entries().length }} jugadores</span>
+  </header>
+
+  <ol class="lb__list">
+    @for (e of entries(); track e.socketId) {
+      <li><app-rank-row [entry]="e" [highlight]="e.socketId === mySocketId()" [showDelta]="true" /></li>
+    }
+  </ol>
+
+  <footer class="lb__footer">
+    @if (role() === 'host') {
+      <button type="button" class="btn btn--success btn--block" (click)="next.emit()">
+        {{ isLast() ? 'Ver resultados finales' : 'Siguiente pregunta' }}
+      </button>
+    } @else {
+      <p class="lb__wait" role="status">Esperando al anfitrión…</p>
+    }
+  </footer>
+</section>

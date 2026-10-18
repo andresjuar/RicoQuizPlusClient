@@ -1,0 +1,23 @@
+@use 'mixins' as *;
+
+:host { display: block; }
+
+.gate {
+  max-width: 440px;
+  margin-inline: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  padding: var(--sp-6) var(--sp-5);
+
+  &__title { font-size: var(--fs-xl); font-weight: 600; line-height: 1.2; }
+  &__text { font-size: var(--fs-sm); color: var(--text-muted); }
+  &__form { display: flex; flex-direction: column; gap: var(--sp-4); margin-top: var(--sp-3); }
+
+  &__link {
+    align-self: center;
+    font-size: var(--fs-sm);
+    color: var(--text-muted);
+    &:hover { color: var(--text); text-decoration: underline; }
+  }
+}

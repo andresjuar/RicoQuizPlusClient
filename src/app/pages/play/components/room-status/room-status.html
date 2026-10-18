@@ -1,0 +1,20 @@
+<section class="rs" [attr.role]="kind() === 'error' ? 'alert' : 'status'">
+  @if (kind() === 'connecting') {
+    <span class="rs__spinner" aria-hidden="true"></span>
+    <h1 class="rs__title">Conectando con la sala…</h1>
+    <p class="rs__text">{{ message() ?? 'Estamos buscando tu partida.' }}</p>
+  } @else {
+    <span class="rs__icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2.5"
+           stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 8v5M12 16.5v.5" /><path d="M10.3 3.9L2.5 17.5A2 2 0 004.2 20.5h15.6a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z" />
+      </svg>
+    </span>
+    <h1 class="rs__title">No pudimos entrar a la sala</h1>
+    <p class="rs__text">{{ message() ?? 'Revisa el código o inténtalo de nuevo.' }}</p>
+    <div class="rs__actions">
+      <button type="button" class="btn btn--accent" (click)="retry.emit()">Reintentar</button>
+      <a class="btn btn--ghost" routerLink="/">Volver al inicio</a>
+    </div>
+  }
+</section>

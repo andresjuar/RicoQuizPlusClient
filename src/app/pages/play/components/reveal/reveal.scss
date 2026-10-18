@@ -1,0 +1,41 @@
+@use 'mixins' as *;
+
+:host { display: block; }
+
+.rv {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+
+  &__banner {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-3);
+    padding: var(--sp-4);
+    border: 1px solid var(--banner-color);
+    border-radius: var(--radius-lg);
+    background: color-mix(in srgb, var(--banner-color) 16%, transparent);
+
+    &[data-result='correct'] { --banner-color: var(--success); }
+    &[data-result='wrong'] { --banner-color: var(--danger); }
+    &[data-result='none'] { --banner-color: var(--warning); }
+    &[data-result='host'] { --banner-color: var(--info); }
+  }
+
+  &__icon {
+    @include flex-center;
+    flex-shrink: 0;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: var(--banner-color);
+    color: var(--text-on-light);
+  }
+
+  &__title { display: block; font-size: var(--fs-lg); font-weight: 700; color: var(--banner-color); }
+  &__sub { font-size: var(--fs-sm); color: var(--text-muted); b { color: var(--text); } }
+
+  &__text { font-size: var(--fs-xl); font-weight: 600; line-height: 1.25; @include up(md) { font-size: var(--fs-2xl); } }
+
+  &__options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-3); }
+}

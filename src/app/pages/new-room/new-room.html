@@ -1,1 +1,109 @@
-<p>new-room works!</p>
+<div class="container page">
+  <header class="page__head">
+    <span class="eyebrow">Nueva partida</span>
+    <h1 class="page__title">Elige el quiz para tu sala</h1>
+    <p class="page__text">Usa uno existente o deja que la IA arme uno a partir de un tema.</p>
+  </header>
+
+  <div class="seg" role="group" aria-label="Origen del quiz">
+    <button type="button" class="seg__btn" [class.seg__btn--on]="mode() === 'existing'"
+            [attr.aria-pressed]="mode() === 'existing'" (click)="mode.set('existing')">
+      Quizzes existentes
+    </button>
+    <button type="button" class="seg__btn" [class.seg__btn--on]="mode() === 'ai'"
+            [attr.aria-pressed]="mode() === 'ai'" (click)="mode.set('ai')">
+      Generar con IA
+    </button>
+  </div>
+
+  @if (mode() === 'existing') {
+    <div class="field">
+      <label for="quiz-search">Buscar</label>
+      <input id="quiz-search" class="input" type="search" placeholder="Busca por tema, título o etiqueta…"
+             [formControl]="search" />
+    </div>
+
+    @if (filtered().length) {
+      <ul class="grid">
+        @for (q of filtered(); track q._id) {
+          <li>
+            <button type="button" class="qcard" [class.qcard--on]="selected()?.id === q._id"
+                    [attr.aria-pressed]="selected()?.id === q._id" (click)="choose(q)">
+              <span class="qcard__tags">
+                @if (q.topic) { <span class="badge">{{ q.topic }}</span> }
+                @if (q.generatedByAI) { <span class="badge qcard__ai">IA</span> }
+                @if (!q.isPublic) { <span class="badge">Privado</span> }
+              </span>
+              <strong class="qcard__title">{{ q.title }}</strong>
+              <span class="qcard__meta">{{ plural(q.questions.length) }} · {{ minutes(q) }} min</span>
+              @if (q.description) {
+                <span class="qcard__desc">{{ q.description }}</span>
+              }
+              @if (selected()?.id === q._id) {
+                <span class="qcard__check" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor"
+                       stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M5 12.5l4.5 4.5L19 7.5" />
+                  </svg>
+                </span>
+              }
+            </button>
+          </li>
+        }
+      </ul>
+    } @else {
+      <p class="empty">No encontramos quizzes con «{{ search.value }}».</p>
+    }
+  } @else {
+    <section class="ai card">
+      @if (generating()) {
+        <div class="ai__center" role="status" aria-live="polite">
+          <span class="ai__spinner" aria-hidden="true"></span>
+          <strong>Generando preguntas con IA…</strong>
+          <span class="ai__hint">Esto puede tardar unos segundos.</span>
+        </div>
+      } @else if (generated(); as g) {
+        <div class="ai__center">
+          <span class="badge qcard__ai">Listo</span>
+          <strong class="ai__result">{{ g.title }}</strong>
+          <span class="ai__hint">{{ plural(g.questionCount) }} generadas y seleccionadas para tu sala.</span>
+          <button type="button" class="btn btn--ghost" (click)="discardGenerated()">Generar otro</button>
+        </div>
+      } @else {
+        <form class="ai__form" (submit)="onGenerate($event)" novalidate>
+          <div class="field">
+            <label for="ai-topic">Tema</label>
+            <input id="ai-topic" class="input" type="text" placeholder="Ej. Historia del arte" maxlength="60"
+                   [formControl]="topic" />
+            @if (topic.touched && topic.invalid) {
+              <span class="field__error">Escribe un tema de 3 a 60 caracteres.</span>
+            }
+          </div>
+
+          <div class="ai__chips" aria-label="Sugerencias de tema">
+            @for (s of suggestions; track s) {
+              <button type="button" class="chip" (click)="useSuggestion(s)">{{ s }}</button>
+            }
+          </div>
+
+          <button type="submit" class="btn btn--primary">Generar quiz</button>
+        </form>
+      }
+    </section>
+  }
+
+  <div class="bar">
+    <div class="bar__info">
+      <span class="bar__label">Quiz seleccionado</span>
+      @if (selected(); as s) {
+        <strong class="bar__title">{{ s.title }} <span class="bar__meta">· {{ plural(s.questionCount) }}</span></strong>
+      } @else {
+        <span class="bar__empty">Aún no eliges un quiz</span>
+      }
+    </div>
+    <div class="bar__actions">
+      <a class="btn btn--ghost" routerLink="/dashboard">Cancelar</a>
+      <button type="button" class="btn btn--accent" [disabled]="!selected()" (click)="createRoom()">Crear sala</button>
+    </div>
+  </div>
+</div>

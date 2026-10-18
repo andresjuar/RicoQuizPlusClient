@@ -1,0 +1,29 @@
+<button type="button" class="opt" [attr.data-state]="state()" [class.opt--dark]="index() >= 2"
+        [style.--opt-color]="'var(--answer-' + index() + ')'" [disabled]="disabled()" (click)="picked.emit()">
+  <span class="opt__icon" aria-hidden="true">
+    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"
+         stroke-linejoin="round">
+      @switch (index()) {
+        @case (0) { <path d="M12 4l9 16H3L12 4z" /> }
+        @case (1) { <path d="M12 3l9 9-9 9-9-9 9-9z" /> }
+        @case (2) { <circle cx="12" cy="12" r="8.5" /> }
+        @default { <rect x="4" y="4" width="16" height="16" rx="2" /> }
+      }
+    </svg>
+  </span>
+  <span class="opt__label">{{ label() }}</span>
+
+  @if (state() === 'correct') {
+    <span class="opt__mark opt__mark--ok" aria-hidden="true">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="3"
+           stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5" /></svg>
+    </span>
+    <span class="opt__sr">(respuesta correcta)</span>
+  } @else if (state() === 'wrong') {
+    <span class="opt__mark opt__mark--bad" aria-hidden="true">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="3"
+           stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6L6 18" /></svg>
+    </span>
+    <span class="opt__sr">(tu respuesta, incorrecta)</span>
+  }
+</button>

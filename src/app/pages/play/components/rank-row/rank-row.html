@@ -1,0 +1,14 @@
+<div class="row" [class.row--me]="highlight()" [attr.data-rank]="entry().rank">
+  <span class="row__rank">{{ entry().rank }}</span>
+  <app-avatar [name]="entry().displayName" [size]="32" />
+  <span class="row__name">{{ entry().displayName }}</span>
+  @if (highlight()) {
+    <span class="row__me">Tú</span>
+  }
+  <span class="row__score">
+    <strong>{{ score() }} pts</strong>
+    @if (showDelta()) {
+      <small class="row__delta" [class.row__delta--zero]="delta() === 0">+{{ delta() }}</small>
+    }
+  </span>
+</div>

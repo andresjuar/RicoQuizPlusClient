@@ -1,0 +1,19 @@
+<section class="gate card">
+  <span class="eyebrow">Sala {{ code() }}</span>
+  <h1 class="gate__title">¿Cómo te llamamos?</h1>
+  <p class="gate__text">Entra sin cuenta: elige un nombre para que los demás te vean en la partida.</p>
+
+  <form class="gate__form" (submit)="onSubmit($event)" novalidate>
+    <div class="field">
+      <label for="guest-name">Tu nombre</label>
+      <input id="guest-name" class="input" type="text" placeholder="Ej. Sofi" maxlength="30"
+             autocomplete="nickname" [formControl]="name" />
+      @if (name.touched && name.invalid) {
+        <span class="field__error">El nombre debe tener entre 2 y 30 caracteres.</span>
+      }
+    </div>
+    <button type="submit" class="btn btn--accent btn--block">Entrar a la sala</button>
+  </form>
+
+  <a class="gate__link" routerLink="/login">¿Ya tienes cuenta? Inicia sesión</a>
+</section>

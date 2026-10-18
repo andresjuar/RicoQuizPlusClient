@@ -1,0 +1,46 @@
+<aside class="dev" aria-label="Panel de desarrollo">
+  <button type="button" class="dev__toggle" [attr.aria-expanded]="open()" (click)="open.set(!open())">
+    <span>DEV · Partida</span>
+    <span aria-hidden="true">{{ open() ? '–' : '+' }}</span>
+  </button>
+
+  @if (open()) {
+    <div class="dev__body">
+      <div class="field">
+        <label for="dev-phase">Fase</label>
+        <select id="dev-phase" class="input" (change)="onPhase($event)">
+          @for (p of phases; track p) {
+            <option [value]="p" [selected]="p === phase()">{{ p }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="dev-role">Rol</label>
+        <select id="dev-role" class="input" (change)="onRole($event)">
+          <option value="host" [selected]="role() === 'host'">host</option>
+          <option value="player" [selected]="role() === 'player'">player</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="dev-answer">Mi respuesta</label>
+        <select id="dev-answer" class="input" (change)="onAnswer($event)">
+          <option value="" [selected]="myAnswer() === null">Sin responder</option>
+          @for (i of options; track i) {
+            <option [value]="i" [selected]="myAnswer() === i">Opción {{ i + 1 }}</option>
+          }
+        </select>
+        <span class="dev__hint">En el mock la correcta es la opción 2.</span>
+      </div>
+
+      <label class="dev__check">
+        <input type="checkbox" [checked]="isLast()" (change)="onLast($event)" />
+        Última pregunta (leaderboard)
+      </label>
+
+      <button type="button" class="btn btn--ghost btn--block" (click)="next()">Siguiente fase →</button>
+      <a class="btn btn--ghost btn--block" routerLink="/">Salir al inicio (probar guard)</a>
+    </div>
+  }
+</aside>

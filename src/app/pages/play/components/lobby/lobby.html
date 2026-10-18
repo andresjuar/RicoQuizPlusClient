@@ -1,0 +1,78 @@
+<section class="lobby">
+  <header class="lobby__head">
+    <div>
+      <span class="eyebrow">Listos para jugar</span>
+      <h1 class="lobby__title">Sala de espera</h1>
+    </div>
+    <span class="lobby__count">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="9" cy="8" r="3.5" /><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6" />
+        <path d="M16 4.5a3.5 3.5 0 010 7M18.5 14.5c1.8.8 3 2.6 3 5.5" />
+      </svg>
+      {{ connectedCount() }} conectados
+    </span>
+  </header>
+
+  @if (role() === 'host') {
+    <div class="lobby__access">
+      <div class="code-card">
+        <span class="code-card__label">Código de sala</span>
+        <div class="code-card__row">
+          <strong class="code-card__code">{{ formattedCode() }}</strong>
+          <button type="button" class="code-card__copy" aria-label="Copiar código de sala"
+                  [appCopyToClipboard]="code()" (copied)="onCopied($event)">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <rect x="9" y="9" width="11" height="11" rx="2" /><path d="M5 15V6a2 2 0 012-2h9" />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="qr" role="img" aria-label="Código QR de acceso (pendiente)">
+        <svg viewBox="0 0 64 64" width="72" height="72" fill="none" stroke="currentColor" stroke-width="3"
+             stroke-linecap="round" aria-hidden="true">
+          <path d="M8 8l48 48M56 8L8 56" />
+        </svg>
+        <span>[QR de acceso]</span>
+      </div>
+    </div>
+  }
+
+  <div class="lobby__players">
+    <div class="lobby__players-head">
+      <h2>Jugadores</h2>
+      <span>Se actualiza en vivo</span>
+    </div>
+    <ul class="lobby__grid">
+      @for (p of players(); track p.socketId) {
+        <li><app-player-chip [player]="p" [isHost]="p.socketId === hostSocketId()" /></li>
+      }
+    </ul>
+  </div>
+
+  @if (role() === 'host') {
+    <footer class="lobby__footer">
+      <span class="lobby__hint">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z" /><circle cx="12" cy="12" r="3" />
+        </svg>
+        Visible solo para el host
+      </span>
+      <button type="button" class="btn btn--success btn--block" (click)="start.emit()">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M7 4.5v15l12-7.5-12-7.5z" />
+        </svg>
+        Iniciar partida
+      </button>
+    </footer>
+  } @else {
+    <footer class="lobby__waiting" role="status">
+      <span class="lobby__pulse" aria-hidden="true"></span>
+      Esperando a que el anfitrión inicie la partida…
+    </footer>
+  }
+</section>

@@ -1,0 +1,128 @@
+@use 'mixins' as *;
+
+:host { display: block; }
+
+.lobby {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-5);
+
+  &__head { display: flex; align-items: flex-end; justify-content: space-between; gap: var(--sp-3); }
+  &__title { font-size: var(--fs-xl); font-weight: 600; line-height: 1.2; @include up(md) { font-size: var(--fs-2xl); } }
+
+  &__count {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--sp-2);
+    padding: var(--sp-1) var(--sp-3);
+    border-radius: var(--radius-full);
+    font-size: var(--fs-sm);
+    font-weight: 600;
+    white-space: nowrap;
+    color: var(--success);
+    background: color-mix(in srgb, var(--success) 18%, transparent);
+  }
+
+  &__access { display: flex; gap: var(--sp-4); }
+
+  &__players-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: var(--sp-3);
+
+    h2 { font-size: var(--fs-md); font-weight: 600; }
+    span { font-size: var(--fs-xs); color: var(--text-dim); }
+  }
+
+  &__grid {
+    list-style: none;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--sp-2);
+  }
+
+  &__footer { display: flex; flex-direction: column; align-items: center; gap: var(--sp-2); margin-top: var(--sp-3); }
+
+  &__hint {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--sp-1);
+    font-size: var(--fs-xs);
+    color: var(--accent);
+  }
+
+    &__waiting {
+    @include flex-center(var(--sp-3));
+    @include glass;
+    margin-top: var(--sp-3);
+    padding: var(--sp-4);
+    font-size: var(--fs-sm);
+    color: var(--text-muted);
+  }
+
+  &__pulse {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--accent);
+    animation: pulse 1.4s ease-in-out infinite;
+
+    @media (prefers-reduced-motion: reduce) { animation: none; }
+  }
+}
+
+.code-card {
+  flex: 1;
+  @include flex-center(var(--sp-2));
+  flex-direction: column;
+  padding: var(--sp-5) var(--sp-4);
+  border-radius: var(--radius-lg);
+  background: var(--primary-gradient);
+  box-shadow: var(--shadow-glow);
+
+  &__label { @include label-caps; color: rgb(255 255 255 / 0.75); }
+  &__row { display: flex; align-items: center; gap: var(--sp-3); }
+
+  &__code {
+    font-size: var(--fs-2xl);
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+    @include up(md) { font-size: var(--fs-3xl); }
+  }
+
+  &__copy {
+    @include flex-center;
+    width: 36px;
+    height: 36px;
+    border: none;
+    border-radius: var(--radius-sm);
+    color: #fff;
+    background: rgb(255 255 255 / 0.2);
+    cursor: pointer;
+    transition: background var(--transition);
+    &:hover { background: rgb(255 255 255 / 0.32); }
+  }
+}
+
+// El QR solo aparece en pantallas amplias, como en el wireframe de desktop
+.qr {
+  display: none;
+  flex-direction: column;
+  width: 180px;
+  flex-shrink: 0;
+  color: var(--accent);
+  border: 1.5px dashed var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  span { font-size: var(--fs-xs); color: var(--text-muted); }
+
+  @include up(md) { @include flex-center(var(--sp-2)); }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.35; transform: scale(0.7); }
+}
