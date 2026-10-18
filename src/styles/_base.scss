@@ -206,3 +206,14 @@ button, input, select, textarea { font: inherit; color: inherit; }
 }
 
 @keyframes shimmer { to { background-position: -200% 0; } }
+
+.page-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--sp-4);
+
+  h1 { font-size: var(--fs-2xl); line-height: 1.15; }
+  &__actions { display: flex; flex-wrap: wrap; gap: var(--sp-2); }
+}

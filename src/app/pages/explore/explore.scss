@@ -1,0 +1,75 @@
+@use 'mixins' as *;
+
+.explore {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-5);
+}
+
+.hero {
+  display: grid;
+  gap: var(--sp-5);
+  align-items: center;
+  padding: var(--sp-6);
+
+  @include up(lg) { grid-template-columns: 1fr 1fr; }
+
+  &__title { font-size: var(--fs-2xl); line-height: 1.1; }
+  &__lead { font-size: var(--fs-sm); color: var(--text-muted); }
+}
+
+.search {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: var(--sp-1) var(--sp-1) var(--sp-1) var(--sp-4);
+  border-radius: var(--radius-md);
+  background: #fff;
+
+  &__icon { font-size: var(--fs-lg); color: var(--primary); }
+
+  &__input {
+    flex: 1;
+    min-width: 0;
+    padding: var(--sp-2) 0;
+    border: none;
+    background: none;
+    color: var(--text-on-light);
+
+    &:focus { outline: none; }
+    &::placeholder { color: #8a87a8; }
+  }
+}
+
+.trending {
+  margin-top: var(--sp-2);
+  font-size: var(--fs-xs);
+  color: var(--text-dim);
+
+  &__term {
+    border: none;
+    background: none;
+    color: var(--accent);
+    font-size: inherit;
+    cursor: pointer;
+    &:hover { text-decoration: underline; }
+  }
+}
+
+.filters {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+
+  @include up(md) { flex-direction: row; align-items: center; justify-content: space-between; }
+
+  &__chips {
+    display: flex;
+    gap: var(--sp-2);
+    overflow-x: auto;
+    padding-bottom: var(--sp-1);
+    scrollbar-width: none;
+  }
+
+  &__count { font-size: var(--fs-xs); color: var(--text-dim); white-space: nowrap; }
+}

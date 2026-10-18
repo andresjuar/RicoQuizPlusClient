@@ -1,6 +1,6 @@
 <header class="nav">
   <div class="nav__inner container">
-    <a class="nav__brand" [routerLink]="auth.isAuthenticated() ? '/dashboard' : '/'" (click)="closeMenus()">
+    <a class="nav__brand" [routerLink]="auth.isAuthenticated() ? '/' : '/'" (click)="closeMenus()">
       <span class="nav__logo">✦</span>
       RicoQuiz<span class="nav__plus">+</span>
     </a>
