@@ -19,10 +19,12 @@ export class DevPanel {
   readonly phase = input.required<GamePhase>();
   readonly role = input.required<PlayerRole>();
   readonly myAnswer = input.required<number | null>();
+  readonly isLast = input.required<boolean>();
 
   readonly phaseChange = output<GamePhase>();
   readonly roleChange = output<PlayerRole>();
   readonly answerChange = output<number | null>();
+  readonly isLastChange = output<boolean>();
 
   protected readonly open = signal(true);
   protected readonly phases: GamePhase[] = [...FLOW, 'error'];
@@ -39,6 +41,10 @@ export class DevPanel {
   protected onAnswer(event: Event): void {
     const value = (event.target as HTMLSelectElement).value;
     this.answerChange.emit(value === '' ? null : Number(value));
+  }
+
+  protected onLast(event: Event): void {
+    this.isLastChange.emit((event.target as HTMLInputElement).checked);
   }
 
   protected next(): void {

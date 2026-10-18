@@ -2,7 +2,7 @@ import { Component, DestroyRef, computed, inject, input, signal } from '@angular
 import { Router } from '@angular/router';
 import { environment } from '../../../environments/environment';
 import { MOCK_LEADERBOARD, MOCK_PLAYERS, MOCK_QUESTION } from '../../shared/mocks/mock-data';
-import { AnswerRevealed, GamePhase, PlayerRole } from '../../shared/models/game.model';
+import { AnswerCount, AnswerRevealed, GamePhase, PlayerRole } from '../../shared/models/game.model';
 import { AuthService } from '../../shared/services/auth.service';
 import { ToastService } from '../../shared/services/toast.service';
 import { DevPanel } from './components/dev-panel/dev-panel';
@@ -53,10 +53,14 @@ export class GameShell {
     correctIndex: MOCK_QUESTION.correctIndex,
     correctText: MOCK_QUESTION.options[MOCK_QUESTION.correctIndex],
   };
+  // Solo lo recibe el host (game:answer_count); mock fijo como en el wireframe
+  protected readonly answerCount: AnswerCount = { answeredCount: 7, totalPlayers: 8 };
   protected readonly leaderboard = MOCK_LEADERBOARD;
   protected readonly mySocketId = 's2';
   protected readonly secondsLeft = signal(MOCK_QUESTION.timeLimitSeconds);
   protected readonly myAnswer = signal<number | null>(null);
+  // Equivale a `isFinalRound` de game:leaderboard; se cambia desde el panel dev
+  protected readonly isLast = signal(false);
 
   protected readonly status = computed<{ label: string; tone: StatusTone }>(() => {
     switch (this.phase()) {
@@ -72,6 +76,7 @@ export class GameShell {
   private connectTimeout?: ReturnType<typeof setTimeout>;
   private loadingTimeout?: ReturnType<typeof setTimeout>;
   private revealTimeout?: ReturnType<typeof setTimeout>;
+  private leaderboardTimeout?: ReturnType<typeof setTimeout>;
   private countdown?: ReturnType<typeof setInterval>;
 
   constructor() {
@@ -103,7 +108,17 @@ export class GameShell {
   // Al responder pasa a reveal tras un momento; si no respondes, pasa cuando se acaba el tiempo
   protected onAnswer(index: number): void {
     this.myAnswer.set(index);
-    this.revealTimeout = setTimeout(() => this.goTo('reveal'), 1200);
+    this.revealTimeout = setTimeout(() => this.toReveal(), 1200);
+  }
+
+  // Host: fuerza el reveal sin esperar al timer (game:reveal_answer)
+  protected onRevealNow(): void {
+    this.toReveal();
+  }
+
+  // Host: del leaderboard a la siguiente pregunta o a los resultados (game:next_question)
+  protected onNextQuestion(): void {
+    this.goTo(this.isLast() ? 'finished' : 'question');
   }
 
   protected onPlayAgain(): void {
@@ -129,14 +144,21 @@ export class GameShell {
     this.secondsLeft.set(this.question.timeLimitSeconds);
     this.countdown = setInterval(() => {
       this.secondsLeft.update(s => Math.max(0, s - 1));
-      if (this.secondsLeft() === 0) this.goTo('reveal');
+      if (this.secondsLeft() === 0) this.toReveal();
     }, 1000);
+  }
+
+  // Como el backend: el reveal pasa solo al leaderboard a los 2 s
+  private toReveal(): void {
+    this.goTo('reveal');
+    this.leaderboardTimeout = setTimeout(() => this.goTo('leaderboard'), 2000);
   }
 
   private clearTimers(): void {
     clearTimeout(this.connectTimeout);
     clearTimeout(this.loadingTimeout);
     clearTimeout(this.revealTimeout);
+    clearTimeout(this.leaderboardTimeout);
     clearInterval(this.countdown);
   }
 }

@@ -1,5 +1,5 @@
-import { Component, input } from '@angular/core';
-import { LeaderboardEntry } from '../../../../shared/models/game.model';
+import { Component, input, output } from '@angular/core';
+import { LeaderboardEntry, PlayerRole } from '../../../../shared/models/game.model';
 import { RankRow } from '../rank-row/rank-row';
 
 @Component({
@@ -13,4 +13,10 @@ export class Leaderboard {
   readonly entries = input.required<LeaderboardEntry[]>();
   /** socketId del jugador actual, para resaltar su fila */
   readonly mySocketId = input<string | null>(null);
+  readonly role = input<PlayerRole>('player');
+  /** Viene como `isFinalRound` en game:leaderboard: cambia el texto del botón */
+  readonly isLast = input(false);
+
+  /** Solo el host avanza (game:next_question) */
+  readonly next = output<void>();
 }

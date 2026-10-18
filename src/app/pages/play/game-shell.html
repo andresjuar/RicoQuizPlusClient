@@ -35,16 +35,18 @@
       }
       @case ('question') {
         <app-question [question]="question" [secondsLeft]="secondsLeft()" [myAnswer]="myAnswer()"
-                      (answer)="onAnswer($event)" />
+                      [role]="role()" [answerCount]="answerCount"
+                      (answer)="onAnswer($event)" (reveal)="onRevealNow()" />
       }
       @case ('reveal') {
-        <app-reveal [question]="question" [revealed]="revealed" [myAnswer]="myAnswer()" />
+        <app-reveal [question]="question" [revealed]="revealed" [myAnswer]="myAnswer()" [role]="role()" />
       }
       @case ('leaderboard') {
-        <app-leaderboard [entries]="leaderboard" [mySocketId]="mySocketId" />
+        <app-leaderboard [entries]="leaderboard" [mySocketId]="mySocketId" [role]="role()"
+                         [isLast]="isLast()" (next)="onNextQuestion()" />
       }
       @case ('finished') {
-        <app-final-results [entries]="leaderboard" [mySocketId]="mySocketId"
+        <app-final-results [entries]="leaderboard" [mySocketId]="mySocketId" [role]="role()"
                            (playAgain)="onPlayAgain()" (leave)="onLeave()" />
       }
     }
@@ -52,7 +54,7 @@
 </div>
 
 @if (isDev) {
-  <app-dev-panel [phase]="phase()" [role]="role()" [myAnswer]="myAnswer()"
+  <app-dev-panel [phase]="phase()" [role]="role()" [myAnswer]="myAnswer()" [isLast]="isLast()"
                  (phaseChange)="goTo($event)" (roleChange)="role.set($event)"
-                 (answerChange)="myAnswer.set($event)" />
+                 (answerChange)="myAnswer.set($event)" (isLastChange)="isLast.set($event)" />
 }

@@ -33,6 +33,10 @@
         </select>
         <span class="dev__hint">En el mock la correcta es la opción 2.</span>
       </div>
+            <label class="dev__check">
+        <input type="checkbox" [checked]="isLast()" (change)="onLast($event)" />
+        Última pregunta (leaderboard)
+      </label>
 
       <button type="button" class="btn btn--ghost btn--block" (click)="next()">Siguiente fase →</button>
     </div>

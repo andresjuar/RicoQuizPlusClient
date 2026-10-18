@@ -12,4 +12,14 @@
       <li><app-rank-row [entry]="e" [highlight]="e.socketId === mySocketId()" [showDelta]="true" /></li>
     }
   </ol>
+
+  <footer class="lb__footer">
+    @if (role() === 'host') {
+      <button type="button" class="btn btn--success btn--block" (click)="next.emit()">
+        {{ isLast() ? 'Ver resultados finales' : 'Siguiente pregunta' }}
+      </button>
+    } @else {
+      <p class="lb__wait" role="status">Esperando al anfitrión…</p>
+    }
+  </footer>
 </section>
