@@ -1,6 +1,7 @@
 import { Component, DestroyRef, computed, inject, input, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { environment } from '../../../environments/environment';
+import { GameLeaveState } from '../../shared/guards/leave-game.guard';
 import { MOCK_LEADERBOARD, MOCK_PLAYERS, MOCK_QUESTION } from '../../shared/mocks/mock-data';
 import { AnswerCount, AnswerRevealed, GamePhase, PlayerRole } from '../../shared/models/game.model';
 import { AuthService } from '../../shared/services/auth.service';
@@ -17,6 +18,9 @@ import { RoomStatus } from './components/room-status/room-status';
 
 type StatusTone = 'ok' | 'warn' | 'error' | 'final';
 
+// Fases sin partida en curso: ahí se puede salir sin confirmar
+const PHASES_WITHOUT_CONFIRM: GamePhase[] = ['connecting', 'error', 'guest-gate', 'finished'];
+
 /**
  * Layout de pantalla completa de la partida (sin navbar).
  * Una sola ruta (/play/:code); la fase decide qué vista se muestra.
@@ -30,7 +34,7 @@ type StatusTone = 'ok' | 'warn' | 'error' | 'final';
   styleUrl: './game-shell.scss',
   templateUrl: './game-shell.html',
 })
-export class GameShell {
+export class GameShell implements GameLeaveState {
   private readonly toast = inject(ToastService);
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
@@ -82,6 +86,11 @@ export class GameShell {
   constructor() {
     inject(DestroyRef).onDestroy(() => this.clearTimers());
     this.connect();
+  }
+
+  /** Lo consulta leaveGameGuard (Issue 39): confirma la salida solo si hay partida en curso */
+  shouldConfirmLeave(): boolean {
+    return !PHASES_WITHOUT_CONFIRM.includes(this.phase());
   }
 
   /** Cambia de fase cancelando cualquier avance automático pendiente (lo usa también el panel dev) */

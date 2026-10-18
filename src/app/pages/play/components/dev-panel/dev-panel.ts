@@ -1,16 +1,14 @@
 import { Component, input, output, signal } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { GamePhase, PlayerRole } from '../../../../shared/models/game.model';
 
-/** Orden normal de una partida; 'error' se elige a mano */
 const FLOW: GamePhase[] = [
   'connecting', 'guest-gate', 'lobby', 'loading', 'question', 'reveal', 'leaderboard', 'finished',
 ];
 
-/**
- * Panel flotante SOLO para desarrollo: cambia fase, rol y respuesta a mano.
- * Se quita al integrar Socket.io (borrar el componente y su uso en game-shell.html).
- */
+
 @Component({
+  imports: [RouterLink],
   selector: 'app-dev-panel',
   styleUrl: './dev-panel.scss',
   templateUrl: './dev-panel.html',
