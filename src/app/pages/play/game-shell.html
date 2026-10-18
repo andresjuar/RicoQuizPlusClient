@@ -1,31 +1,58 @@
-<main class="shell">
-  @switch (phase()) {
-    @case ('guest-gate') {
-      <app-guest-gate [code]="code()" (joined)="onJoined($event)" />
-    }
-    @case ('lobby') {
-      <app-lobby [role]="role" [code]="code()" [players]="players" [hostSocketId]="hostSocketId" (start)="onStart()" />
-    }
-    @case ('loading') {
-      <app-loading />
-    }
-    @case ('question') {
-      <app-question [question]="question" [secondsLeft]="secondsLeft()" [myAnswer]="myAnswer()"
-                    (answer)="onAnswer($event)" />
-    }
-    @case ('reveal') {
-      <app-reveal [question]="question" [revealed]="revealed" [myAnswer]="myAnswer()" />
-    }
-    @case ('leaderboard') {
-      <app-leaderboard [entries]="leaderboard" [mySocketId]="mySocketId" />
-    }
-    @case ('finished') {
-      <app-final-results [entries]="leaderboard" [mySocketId]="mySocketId"
-                         (playAgain)="onPlayAgain()" (leave)="onLeave()" />
-    }
-  }
+<div class="shell">
+  <header class="shell__bar">
+    <span class="brand">
+      <span class="brand__mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+          <path d="M12 2l2.2 6.3L20.5 10l-6.3 1.7L12 18l-2.2-6.3L3.5 10l6.3-1.7L12 2z" />
+        </svg>
+      </span>
+      RicoQuiz<b>+</b>
+    </span>
 
-  @if (phase() === 'reveal' || phase() === 'leaderboard') {
-    <button type="button" class="btn btn--ghost shell__dev" (click)="onNext()">Siguiente (dev) →</button>
-  }
-</main>
+    <span class="status" [attr.data-tone]="status().tone">
+      <span class="status__dot" aria-hidden="true"></span>
+      {{ status().label }}
+    </span>
+  </header>
+
+  <main class="shell__content">
+    @switch (phase()) {
+      @case ('connecting') {
+        <app-room-status kind="connecting" />
+      }
+      @case ('error') {
+        <app-room-status kind="error" (retry)="retry()" />
+      }
+      @case ('guest-gate') {
+        <app-guest-gate [code]="code()" (joined)="onJoined($event)" />
+      }
+      @case ('lobby') {
+        <app-lobby [role]="role()" [code]="code()" [players]="players" [hostSocketId]="hostSocketId"
+                   (start)="onStart()" />
+      }
+      @case ('loading') {
+        <app-loading />
+      }
+      @case ('question') {
+        <app-question [question]="question" [secondsLeft]="secondsLeft()" [myAnswer]="myAnswer()"
+                      (answer)="onAnswer($event)" />
+      }
+      @case ('reveal') {
+        <app-reveal [question]="question" [revealed]="revealed" [myAnswer]="myAnswer()" />
+      }
+      @case ('leaderboard') {
+        <app-leaderboard [entries]="leaderboard" [mySocketId]="mySocketId" />
+      }
+      @case ('finished') {
+        <app-final-results [entries]="leaderboard" [mySocketId]="mySocketId"
+                           (playAgain)="onPlayAgain()" (leave)="onLeave()" />
+      }
+    }
+  </main>
+</div>
+
+@if (isDev) {
+  <app-dev-panel [phase]="phase()" [role]="role()" [myAnswer]="myAnswer()"
+                 (phaseChange)="goTo($event)" (roleChange)="role.set($event)"
+                 (answerChange)="myAnswer.set($event)" />
+}
