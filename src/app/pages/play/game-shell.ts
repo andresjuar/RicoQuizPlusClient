@@ -1,16 +1,16 @@
 import { Component, DestroyRef, inject, input, signal } from '@angular/core';
-import { MOCK_PLAYERS, MOCK_QUESTION } from '../../shared/mocks/mock-data';
-import { AnswerRevealed, PlayerRole } from '../../shared/models/game.model';
+import { MOCK_LEADERBOARD, MOCK_PLAYERS, MOCK_QUESTION } from '../../shared/mocks/mock-data';import { AnswerRevealed, PlayerRole } from '../../shared/models/game.model';
 import { ToastService } from '../../shared/services/toast.service';
 import { GuestGate } from './components/guest-gate/guest-gate';
 import { Lobby } from './components/lobby/lobby';
 import { Loading } from './components/loading/loading';
 import { Question } from './components/question/question';
 import { Reveal } from './components/reveal/reveal';
+import { Leaderboard } from './components/leaderboard/leaderboard';
 
-// TEMPORAL (Issues 15-19): monta las vistas para verlas. El Issue 37 lo reemplaza por el @switch completo.
+
 @Component({
-  imports: [GuestGate, Lobby, Loading, Question, Reveal],
+  imports: [GuestGate, Lobby, Loading, Question, Reveal, Leaderboard],
   selector: 'app-game-shell',
   styleUrl: './game-shell.scss',
   templateUrl: './game-shell.html',
@@ -20,8 +20,7 @@ export class GameShell {
 
   readonly code = input.required<string>();
 
-  protected readonly phase = signal<'guest-gate' | 'lobby' | 'loading' | 'question' | 'reveal'>('guest-gate');
-  protected readonly role: PlayerRole = 'host';
+  protected readonly phase = signal<'guest-gate' | 'lobby' | 'loading' | 'question' | 'reveal' | 'leaderboard'>('guest-gate');  protected readonly role: PlayerRole = 'host';
   protected readonly players = MOCK_PLAYERS;
   protected readonly hostSocketId = 's0';
 
@@ -31,6 +30,8 @@ export class GameShell {
     correctIndex: MOCK_QUESTION.correctIndex,
     correctText: MOCK_QUESTION.options[MOCK_QUESTION.correctIndex],
   };
+  protected readonly leaderboard = MOCK_LEADERBOARD;
+  protected readonly mySocketId = 's2';
   protected readonly secondsLeft = signal(MOCK_QUESTION.timeLimitSeconds);
   protected readonly myAnswer = signal<number | null>(null);
 
@@ -56,10 +57,13 @@ export class GameShell {
     this.loadingTimeout = setTimeout(() => this.startQuestion(), 1500);
   }
 
-  // Al responder pasa a reveal tras un momento; si no respondes, pasa cuando se acaba el tiempo
   protected onAnswer(index: number): void {
     this.myAnswer.set(index);
     this.revealTimeout = setTimeout(() => this.toReveal(), 1200);
+  }
+
+  protected onNext(): void {
+    this.phase.set('leaderboard');
   }
 
   private startQuestion(): void {

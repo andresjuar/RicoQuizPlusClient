@@ -16,5 +16,11 @@
     @case ('reveal') {
       <app-reveal [question]="question" [revealed]="revealed" [myAnswer]="myAnswer()" />
     }
+    @case ('leaderboard') {
+      <app-leaderboard [entries]="leaderboard" [mySocketId]="mySocketId" />
+    }
+  }
+  @if (phase() === 'reveal') {
+    <button type="button" class="btn btn--ghost shell__dev" (click)="onNext()">Siguiente (dev) →</button>
   }
 </main>

@@ -3,4 +3,7 @@
   max-width: 960px;
   margin-inline: auto;
   padding: var(--sp-5) var(--sp-4);
+
+  // TEMPORAL: botón dev, se reemplaza por el selector del Issue 37
+  &__dev { margin: var(--sp-5) auto 0; }
 }
