@@ -1,0 +1,15 @@
+<section class="auth">
+  <div class="auth__card">
+    <header class="auth__header">
+      @if (eyebrow()) { <p class="eyebrow">{{ eyebrow() }}</p> }
+      <h1 class="auth__title">{{ heading() }}</h1>
+      @if (subtitle()) { <p class="auth__subtitle">{{ subtitle() }}</p> }
+    </header>
+
+    <ng-content />
+
+    <footer class="auth__footer">
+      <ng-content select="[authFooter]" />
+    </footer>
+  </div>
+</section>
