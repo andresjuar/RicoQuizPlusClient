@@ -1,0 +1,18 @@
+<div class="podium">
+  @for (e of slots(); track e.socketId) {
+    <div class="slot" [attr.data-rank]="e.rank">
+      <span class="slot__badge">
+        @if (e.rank === 1) {
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M3 8l4.5 4L12 5l4.5 7L21 8l-2 11H5L3 8z" />
+          </svg>
+        }
+        #{{ e.rank }}
+      </span>
+      <app-avatar [name]="e.displayName" [size]="e.rank === 1 ? 56 : 44" />
+      <span class="slot__name">{{ e.displayName }}</span>
+      <span class="slot__score">{{ fmt(e.score) }} pts</span>
+    </div>
+  }
+</div>

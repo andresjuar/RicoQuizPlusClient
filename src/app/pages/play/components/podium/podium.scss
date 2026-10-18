@@ -1,0 +1,49 @@
+@use 'mixins' as *;
+
+:host { display: block; }
+
+.podium {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  align-items: end;
+  gap: var(--sp-3);
+}
+
+.slot {
+  --slot-color: #c9ccdd;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-2);
+  min-width: 0;
+  padding: var(--sp-4) var(--sp-2);
+  border: 1px solid color-mix(in srgb, var(--slot-color) 45%, transparent);
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--slot-color) 12%, transparent);
+
+  &[data-rank='1'] {
+    --slot-color: var(--accent);
+    padding-block: var(--sp-6) var(--sp-5);
+    border-color: var(--accent);
+    box-shadow: var(--shadow-glow);
+  }
+  &[data-rank='3'] { --slot-color: #d99a6c; }
+
+  &__badge {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--sp-1);
+    padding: 0 var(--sp-3);
+    border-radius: var(--radius-full);
+    font-size: var(--fs-xs);
+    font-weight: 700;
+    color: var(--slot-color);
+    background: color-mix(in srgb, var(--slot-color) 18%, transparent);
+  }
+
+  &__name { max-width: 100%; font-weight: 600; @include truncate; }
+  &__score { font-size: var(--fs-sm); font-variant-numeric: tabular-nums; color: var(--text-muted); }
+  &[data-rank='1'] &__score { color: var(--accent); }
+}

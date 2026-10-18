@@ -19,8 +19,13 @@
     @case ('leaderboard') {
       <app-leaderboard [entries]="leaderboard" [mySocketId]="mySocketId" />
     }
+    @case ('finished') {
+      <app-final-results [entries]="leaderboard" [mySocketId]="mySocketId"
+                         (playAgain)="onPlayAgain()" (leave)="onLeave()" />
+    }
   }
-  @if (phase() === 'reveal') {
+
+  @if (phase() === 'reveal' || phase() === 'leaderboard') {
     <button type="button" class="btn btn--ghost shell__dev" (click)="onNext()">Siguiente (dev) →</button>
   }
 </main>
