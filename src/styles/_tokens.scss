@@ -1,0 +1,74 @@
+// Breakpoints (solo SCSS)
+$bp-sm: 480px;
+$bp-md: 768px;
+$bp-lg: 1024px;
+$bp-xl: 1280px;
+
+:root {
+  // Fondo
+  --bg-0: #0d0b2b;
+  --bg-1: #1a1546;
+  --bg-gradient: radial-gradient(120% 80% at 20% 0%, #2a2170 0%, var(--bg-1) 45%, var(--bg-0) 100%);
+
+  // Superficies (tarjetas tipo vidrio)
+  --surface: rgb(255 255 255 / 0.06);
+  --surface-hover: rgb(255 255 255 / 0.1);
+  --surface-strong: rgb(255 255 255 / 0.14);
+  --border: rgb(255 255 255 / 0.12);
+
+  // Texto
+  --text: #f4f3ff;
+  --text-muted: #a9a6d1;
+  --text-dim: #6f6c9c;
+  --text-on-light: #17123d;
+
+  // Marca y acciones
+  --primary: #6d5cf6;
+  --primary-hover: #5b4ae6;
+  --primary-gradient: linear-gradient(135deg, #6d5cf6 0%, #4f7cf3 100%);
+  --accent: #f5d565;
+  --accent-hover: #ecc94b;
+  --success: #6ee09a;
+  --success-hover: #55d184;
+  --danger: #ef5a6f;
+  --warning: #f5a65b;
+  --info: #5bb4f5;
+
+  // Opciones de respuesta (triángulo, rombo, círculo, cuadrado)
+  --answer-0: #e05565;
+  --answer-1: #4a7cf0;
+  --answer-2: #f2d060;
+  --answer-3: #6ad99a;
+
+  // Tipografía
+  --font: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --fs-xs: 0.75rem;
+  --fs-sm: 0.875rem;
+  --fs-md: 1rem;
+  --fs-lg: 1.25rem;
+  --fs-xl: 1.75rem;
+  --fs-2xl: 2.5rem;
+  --fs-3xl: 3.25rem;
+
+  // Espaciado (escala de 4px)
+  --sp-1: 0.25rem;
+  --sp-2: 0.5rem;
+  --sp-3: 0.75rem;
+  --sp-4: 1rem;
+  --sp-5: 1.5rem;
+  --sp-6: 2rem;
+  --sp-8: 3rem;
+
+  // Forma y profundidad
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
+  --radius-xl: 28px;
+  --radius-full: 999px;
+  --shadow-md: 0 8px 24px rgb(0 0 0 / 0.3);
+  --shadow-glow: 0 0 0 1px var(--border), 0 12px 40px rgb(109 92 246 / 0.25);
+
+  --transition: 160ms ease;
+  --z-overlay: 1000;
+  --z-toast: 1100;
+}

@@ -1,0 +1,40 @@
+@use 'tokens' as *;
+
+// Mobile-first: @include up(md) { ... }
+@mixin up($bp) {
+  $map: (sm: $bp-sm, md: $bp-md, lg: $bp-lg, xl: $bp-xl);
+  @media (min-width: map-get($map, $bp)) { @content; }
+}
+
+@mixin glass($radius: var(--radius-lg)) {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: $radius;
+  backdrop-filter: blur(12px);
+}
+
+@mixin flex-center($gap: 0) {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: $gap;
+}
+
+@mixin label-caps {
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+@mixin truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@mixin focus-ring {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
