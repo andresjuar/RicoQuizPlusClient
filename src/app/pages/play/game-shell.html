@@ -13,5 +13,8 @@
       <app-question [question]="question" [secondsLeft]="secondsLeft()" [myAnswer]="myAnswer()"
                     (answer)="onAnswer($event)" />
     }
+    @case ('reveal') {
+      <app-reveal [question]="question" [revealed]="revealed" [myAnswer]="myAnswer()" />
+    }
   }
 </main>

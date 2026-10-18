@@ -1,6 +1,6 @@
 import { Component, input, output } from '@angular/core';
 
-export type AnswerState = 'idle' | 'selected' | 'dimmed';
+export type AnswerState = 'idle' | 'selected' | 'dimmed' | 'correct' | 'wrong';
 
 @Component({
   selector: 'app-answer-option',
