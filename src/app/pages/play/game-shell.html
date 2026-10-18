@@ -6,5 +6,8 @@
     @case ('lobby') {
       <app-lobby [role]="role" [code]="code()" [players]="players" [hostSocketId]="hostSocketId" (start)="onStart()" />
     }
+    @case ('loading') {
++      <app-loading />
++    }
   }
 </main>
