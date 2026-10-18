@@ -1,0 +1,16 @@
+.dialog {
+  padding: var(--sp-6);
+  background: var(--bg-1);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-glow);
+
+  &__title { font-size: var(--fs-lg); margin-bottom: var(--sp-2); }
+  &__message { color: var(--text-muted); margin-bottom: var(--sp-6); }
+
+  &__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--sp-2);
+  }
+}
