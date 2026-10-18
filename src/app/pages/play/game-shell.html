@@ -1,3 +1,10 @@
 <main class="shell">
-  <app-lobby role="host" [code]="code()" [players]="players" [hostSocketId]="hostSocketId" (start)="onStart()" />
+  @switch (phase()) {
+    @case ('guest-gate') {
+      <app-guest-gate [code]="code()" (joined)="onJoined($event)" />
+    }
+    @case ('lobby') {
+      <app-lobby [role]="role" [code]="code()" [players]="players" [hostSocketId]="hostSocketId" (start)="onStart()" />
+    }
+  }
 </main>
