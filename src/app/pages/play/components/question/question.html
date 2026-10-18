@@ -1,0 +1,35 @@
+<section class="q">
+  <header class="q__head">
+    <div class="q__progress">
+      <div class="q__progress-row">
+        <strong>Pregunta {{ question().questionIndex + 1 }}</strong>
+        <span>de {{ question().totalQuestions }}</span>
+      </div>
+      <div class="q__bar"><span class="q__bar-fill" [style.width.%]="progress()"></span></div>
+    </div>
+    <app-countdown-timer [seconds]="secondsLeft()" />
+  </header>
+
+  <h1 class="q__text">{{ question().question }}</h1>
+
+  @if (question().imageUrl; as url) {
+    <img class="q__image" [src]="url" alt="" />
+  }
+
+  <div class="q__options">
+    @for (opt of question().options; track $index) {
+      <app-answer-option [index]="$index" [label]="opt" [state]="stateOf($index)" [disabled]="locked()"
+                         (picked)="pick($index)" />
+    }
+  </div>
+
+  @if (answered()) {
+    <p class="q__sent" role="status">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="12" cy="12" r="9" /><path d="M8 12.5l3 3 5-6" />
+      </svg>
+      Respuesta enviada
+    </p>
+  }
+</section>

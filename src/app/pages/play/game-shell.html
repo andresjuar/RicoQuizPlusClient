@@ -7,7 +7,11 @@
       <app-lobby [role]="role" [code]="code()" [players]="players" [hostSocketId]="hostSocketId" (start)="onStart()" />
     }
     @case ('loading') {
-+      <app-loading />
-+    }
+      <app-loading />
+    }
+    @case ('question') {
+      <app-question [question]="question" [secondsLeft]="secondsLeft()" [myAnswer]="myAnswer()"
+                    (answer)="onAnswer($event)" />
+    }
   }
 </main>
