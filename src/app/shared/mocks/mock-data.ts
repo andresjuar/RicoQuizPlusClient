@@ -1,5 +1,5 @@
 import { User } from '../models/user.model';
-import { Quiz } from '../models/quiz.model';
+import { Question, Quiz } from '../models/quiz.model';
 import { MatchHistoryItem } from '../models/match.model';
 import { LeaderboardEntry, PublicPlayer, HostQuestion } from '../models/game.model';
 
@@ -10,6 +10,10 @@ export const MOCK_USER: User = {
 
 const q = (question: string, options: string[], correctIndex: number) =>
   ({ question, options, correctIndex, timeLimitSeconds: 20 });
+
+
+/** Repite las preguntas base hasta completar `total` (solo para que los mocks se vean realistas) */
+const pad = (base: Question[], total: number): Question[] => Array.from({ length: total }, (_, i) => base[i % base.length]);
 
 export const MOCK_QUIZZES: Quiz[] = [
   {
