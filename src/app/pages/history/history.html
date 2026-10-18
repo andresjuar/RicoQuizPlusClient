@@ -1,1 +1,65 @@
-<p>history works!</p>
+<div class="container history">
+  <header class="page-head">
+    <div>
+      <p class="eyebrow">Tus partidas</p>
+      <h1>Historial</h1>
+    </div>
+  </header>
+
+  @if (loading()) {
+    <div class="summary">
+      @for (i of [1, 2, 3, 4]; track i) { <div class="skeleton skeleton--stat"></div> }
+    </div>
+    <ul class="list">
+      @for (i of [1, 2, 3, 4]; track i) { <li class="skeleton skeleton--row"></li> }
+    </ul>
+  } @else if (summary().played) {
+    <section class="summary">
+      <div class="card stat"><strong>{{ summary().played }}</strong><span>Partidas</span></div>
+      <div class="card stat"><strong>{{ summary().wins }}</strong><span>Victorias</span></div>
+      <div class="card stat"><strong>{{ summary().podiums }}</strong><span>Podios</span></div>
+      <div class="card stat"><strong>{{ summary().avgRank | number: '1.1-1' }}°</strong><span>Posición promedio</span></div>
+    </section>
+
+    <div class="toolbar">
+      <div class="toolbar__chips">
+        @for (f of filters; track f.id) {
+          <button type="button" class="chip" [class.is-active]="filter() === f.id"
+            [attr.aria-pressed]="filter() === f.id" (click)="filter.set(f.id)">{{ f.label }}</button>
+        }
+      </div>
+      <label class="toolbar__sort">
+        <span>Ordenar por</span>
+        <select class="input" [value]="sort()" (change)="sort.set($any($event.target).value)">
+          <option value="recent">Más recientes</option>
+          <option value="score">Mayor puntuación</option>
+        </select>
+      </label>
+    </div>
+
+    @if (visible().length) {
+      <ul class="list">
+        @for (match of visible(); track match.matchId) {
+          <li><app-match-row [match]="match" /></li>
+        }
+      </ul>
+    } @else {
+      <div class="empty-state">
+        <span class="empty-state__icon" aria-hidden="true">🏅</span>
+        <h2>Sin partidas con este filtro</h2>
+        <p>Sigue jugando para llenar tu vitrina.</p>
+        <button type="button" class="btn btn--ghost" (click)="filter.set('all')">Ver todas</button>
+      </div>
+    }
+  } @else {
+    <div class="empty-state">
+      <span class="empty-state__icon" aria-hidden="true">🎮</span>
+      <h2>Aún no has jugado partidas</h2>
+      <p>Cuando termines una partida, aparecerá aquí con tu puntuación y posición.</p>
+      <div class="empty-state__actions">
+        <a class="btn btn--accent" routerLink="/">Unirme con código</a>
+        <a class="btn btn--ghost" routerLink="/room/new">Crear partida</a>
+      </div>
+    </div>
+  }
+</div>

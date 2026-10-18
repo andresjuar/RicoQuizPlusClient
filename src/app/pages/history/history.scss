@@ -1,0 +1,59 @@
+@use 'mixins' as *;
+
+.history {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-5);
+  max-width: 900px;
+}
+
+.summary {
+  display: grid;
+  gap: var(--sp-3);
+  grid-template-columns: repeat(2, 1fr);
+
+  @include up(md) { grid-template-columns: repeat(4, 1fr); }
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-1);
+  padding: var(--sp-4);
+
+  strong { font-size: var(--fs-xl); line-height: 1.1; }
+  span { @include label-caps; }
+}
+
+.toolbar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+
+  @include up(md) { flex-direction: row; align-items: center; justify-content: space-between; }
+
+  &__chips { display: flex; gap: var(--sp-2); overflow-x: auto; }
+
+  &__sort {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-2);
+    font-size: var(--fs-sm);
+    color: var(--text-muted);
+    white-space: nowrap;
+
+    .input { width: auto; padding: var(--sp-2) var(--sp-3); }
+  }
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  list-style: none;
+}
+
+.skeleton--row { min-height: 64px; }
+.skeleton--stat { min-height: 88px; }
+
+.empty-state__actions { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--sp-2); }
