@@ -87,3 +87,10 @@ button, input, select, textarea { font: inherit; color: inherit; }
   font-weight: 600;
   background: var(--surface-strong);
 }
+
+.rq-backdrop {
+  background: rgb(5 4 20 / 0.7);
+  backdrop-filter: blur(4px);
+}
+
+.cdk-dialog-container:focus { outline: none; }

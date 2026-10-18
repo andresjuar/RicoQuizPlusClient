@@ -1,0 +1,16 @@
+<div class="dialog" role="alertdialog" aria-labelledby="dlg-title" aria-describedby="dlg-msg">
+  <h2 id="dlg-title" class="dialog__title">{{ data.title }}</h2>
+  <p id="dlg-msg" class="dialog__message">{{ data.message }}</p>
+
+  <div class="dialog__actions">
+    <button type="button" class="btn btn--ghost" (click)="ref.close(false)">
+      {{ data.cancelText ?? 'Cancelar' }}
+    </button>
+    <button type="button" class="btn"
+      [class.btn--danger]="data.variant === 'danger'"
+      [class.btn--primary]="data.variant !== 'danger'"
+      (click)="ref.close(true)">
+      {{ data.confirmText ?? 'Confirmar' }}
+    </button>
+  </div>
+</div>
