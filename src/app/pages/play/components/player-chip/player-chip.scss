@@ -1,0 +1,22 @@
+@use 'mixins' as *;
+
+.chip {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-2) var(--sp-3);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+
+  &--host { border-color: var(--accent); }
+  &--offline { opacity: 0.45; }
+
+  &__name { flex: 1; min-width: 0; font-weight: 500; @include truncate; }
+
+  &__icon {
+    flex-shrink: 0;
+    &--host { color: var(--accent); }
+    &--ok { color: var(--success); }
+  }
+}

@@ -1,1 +1,3 @@
-<p>game-shell works!</p>
+<main class="shell">
+  <app-lobby role="host" [code]="code()" [players]="players" [hostSocketId]="hostSocketId" (start)="onStart()" />
+</main>
