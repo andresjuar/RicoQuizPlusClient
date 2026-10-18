@@ -21,3 +21,7 @@ export interface Quiz {
   createdAt: string;
   updatedAt: string;
 }
+
+export type QuizDraft = Pick<Quiz, 'title' | 'description' | 'topic' | 'isPublic' | 'tags'> & {
+  questions: Question[];
+};

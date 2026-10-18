@@ -13,6 +13,7 @@
       (click)="favorite.set(!favorite())">{{ favorite() ? '♥' : '♡' }}</button>
 
     @if (quiz().generatedByAI) { <span class="qc__ai">✦ IA</span> }
+    @if (!quiz().isPublic) { <span class="qc__private">🔒 Privado</span> }
   </div>
 
   <div class="qc__body">

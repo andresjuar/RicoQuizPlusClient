@@ -1,1 +1,70 @@
-<p>dashboard works!</p>
+<div class="container dashboard">
+  <header class="page-head">
+    <div>
+      <p class="eyebrow">{{ greeting }}</p>
+      <h1>{{ auth.user()?.displayName }}, ¿listo para jugar?</h1>
+    </div>
+    <div class="page-head__actions">
+      <a class="btn btn--success" routerLink="/room/new">▶ Nueva partida</a>
+      <a class="btn btn--ghost" routerLink="/quizzes/new">+ Crear quiz</a>
+    </div>
+  </header>
+
+  <section class="stats">
+    @for (stat of stats(); track stat.label) {
+      <div class="stat card">
+        <span class="stat__icon" aria-hidden="true">{{ stat.icon }}</span>
+        <strong class="stat__value">{{ stat.value | number }}</strong>
+        <span class="stat__label">{{ stat.label }}</span>
+      </div>
+    }
+  </section>
+
+  <section>
+    <header class="section-head">
+      <h2>Partidas recientes</h2>
+      <a class="link" routerLink="/history">Ver historial →</a>
+    </header>
+
+    @if (history(); as matches) {
+      @if (matches.length) {
+        <ul class="list">
+          @for (match of matches.slice(0, 3); track match.matchId) {
+            <li><app-match-row [match]="match" /></li>
+          }
+        </ul>
+      } @else {
+        <div class="empty-state">
+          <span class="empty-state__icon" aria-hidden="true">🎮</span>
+          <h2>Aún no has jugado partidas</h2>
+          <p>Únete con un código o crea tu propia sala.</p>
+        </div>
+      }
+    } @else {
+      <ul class="list">
+        @for (i of [1, 2, 3]; track i) { <li class="skeleton skeleton--row"></li> }
+      </ul>
+    }
+  </section>
+
+  <section>
+    <header class="section-head">
+      <h2>Tus quizzes</h2>
+      <a class="link" routerLink="/quizzes/mine">Ver todos →</a>
+    </header>
+
+    <div class="grid-cards">
+      @if (myQuizzes(); as quizzes) {
+        @for (quiz of quizzes.slice(0, 3); track quiz._id) {
+          <app-quiz-card [quiz]="quiz" actionLabel="Jugar" (action)="playQuiz($event)" />
+        }
+        <a class="new-tile" routerLink="/quizzes/new">
+          <span aria-hidden="true">+</span>
+          Crear nuevo quiz
+        </a>
+      } @else {
+        @for (i of [1, 2, 3]; track i) { <div class="skeleton"></div> }
+      }
+    </div>
+  </section>
+</div>

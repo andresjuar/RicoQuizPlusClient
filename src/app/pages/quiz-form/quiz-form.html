@@ -1,1 +1,144 @@
-<p>quiz-form works!</p>
+<div class="container quiz-form">
+  <header class="page-head">
+    <div>
+      <a class="link back" routerLink="/quizzes/mine">← Mis quizzes</a>
+      <h1>{{ isEdit() ? 'Editar quiz' : 'Nuevo quiz' }}</h1>
+    </div>
+  </header>
+
+  @if (loading()) {
+    <div class="skeleton"></div>
+  } @else {
+    <form class="layout" [formGroup]="form" (ngSubmit)="save()" novalidate>
+
+      <!-- 1 · Información -->
+      <section class="card section">
+        <header class="section__head">
+          <span class="section__num">1</span>
+          <h2>Información general</h2>
+        </header>
+
+        <div class="info-grid">
+          <label class="cover" [style.background-image]="coverPreview() ? 'url(' + coverPreview() + ')' : null">
+            @if (!coverPreview()) {
+              <span aria-hidden="true">🖼️</span>
+              <small>Agregar portada</small>
+            }
+            <input type="file" accept="image/*" hidden (change)="onCoverSelected($event)" />
+          </label>
+
+          <div class="stack">
+            <div class="field">
+              <label for="title">Título</label>
+              <input id="title" class="input" formControlName="title" placeholder="Misterios del cosmos" />
+              <span class="counter">{{ c.title.value.length }}/100</span>
+              @if (c.title.touched && c.title.invalid) {
+                <span class="field__error">
+                  @if (c.title.hasError('required')) { El título es obligatorio. }
+                  @else if (c.title.hasError('minlength')) { Mínimo 3 caracteres. }
+                  @else { Máximo 100 caracteres. }
+                </span>
+              }
+            </div>
+
+            <div class="field">
+              <label for="description">Descripción <small>· opcional</small></label>
+              <textarea id="description" class="input" rows="3" formControlName="description"
+                placeholder="¿De qué trata tu quiz?"></textarea>
+              <span class="counter">{{ c.description.value.length }}/500</span>
+              @if (c.description.invalid) {
+                <span class="field__error">Máximo 500 caracteres.</span>
+              }
+            </div>
+
+            <div class="field">
+              <label for="tags">Etiquetas <small>· Enter para agregar</small></label>
+              <input #tagInput id="tags" class="input" placeholder="espacio, planetas…"
+                (keydown.enter)="$event.preventDefault(); addTag(tagInput)" />
+              @if (c.tags.value.length) {
+                <div class="tags">
+                  @for (tag of c.tags.value; track tag) {
+                    <span class="tag">#{{ tag }}
+                      <button type="button" [attr.aria-label]="'Quitar ' + tag" (click)="removeTag(tag)">✕</button>
+                    </span>
+                  }
+                </div>
+              }
+            </div>
+
+            <label class="switch">
+              <input type="checkbox" formControlName="isPublic" />
+              <span class="switch__track"></span>
+              <span>{{ c.isPublic.value ? 'Público · aparece en Explorar' : 'Privado · solo tú lo ves' }}</span>
+            </label>
+          </div>
+        </div>
+      </section>
+
+      <!-- 2 · Tema -->
+      <section class="card section">
+        <header class="section__head">
+          <span class="section__num">2</span>
+          <h2>Tema</h2>
+        </header>
+        <app-topic-picker formControlName="topic" />
+        @if (c.topic.touched && c.topic.invalid) {
+          <span class="field__error">Elige un tema o escribe uno propio.</span>
+        }
+      </section>
+
+      <!-- 3 · Preguntas -->
+      <section class="section">
+        <header class="section__head">
+          <span class="section__num">3</span>
+          <h2>Preguntas</h2>
+          <span class="badge">{{ questions.length }}</span>
+          <div class="mode">
+            <button type="button" class="mode__btn" [class.is-active]="mode() === 'manual'" (click)="mode.set('manual')">✎ Manual</button>
+            <button type="button" class="mode__btn" [class.is-active]="mode() === 'ai'" (click)="mode.set('ai')">✦ Generar con IA</button>
+          </div>
+        </header>
+
+        @if (mode() === 'ai') {
+          <div class="card ai">
+            <p>
+              La IA generará preguntas sobre
+              <strong>{{ c.topic.value || 'el tema que elijas' }}</strong>.
+              Después podrás revisarlas y editarlas.
+            </p>
+            <div class="field">
+              <label for="num">Número de preguntas: {{ numQuestions.value }}</label>
+              <input id="num" type="range" min="3" max="20" [formControl]="numQuestions" />
+            </div>
+            @if (c.topic.touched && c.topic.invalid) {
+              <span class="field__error">Primero elige un tema en la sección 2.</span>
+            }
+            <button type="button" class="btn btn--primary" [disabled]="generating()" (click)="generate()">
+              {{ generating() ? 'Generando preguntas…' : '✦ Generar preguntas' }}
+            </button>
+          </div>
+        } @else {
+          <div class="questions">
+            @for (q of questions.controls; track q; let i = $index) {
+              <app-question-editor
+                [form]="q" [index]="i" [total]="questions.length"
+                (remove)="removeQuestion(i)" (duplicate)="duplicateQuestion(i)"
+                (moveUp)="moveQuestion(i, -1)" (moveDown)="moveQuestion(i, 1)" />
+            }
+          </div>
+          <button type="button" class="btn btn--ghost btn--block add-question" (click)="addQuestion()">
+            + Agregar pregunta
+          </button>
+        }
+      </section>
+
+      <footer class="actions">
+        <span class="actions__status">{{ form.dirty ? '● Cambios sin guardar' : 'Sin cambios' }}</span>
+        <button type="button" class="btn btn--ghost" (click)="cancel()">Cancelar</button>
+        <button type="submit" class="btn btn--accent" [disabled]="saving()">
+          {{ saving() ? 'Guardando…' : isEdit() ? 'Guardar cambios' : 'Crear quiz' }}
+        </button>
+      </footer>
+    </form>
+  }
+</div>

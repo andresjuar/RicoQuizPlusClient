@@ -1,1 +1,42 @@
-<p>my-quizzes works!</p>
+<div class="container my-quizzes">
+  <header class="page-head">
+    <div>
+      <p class="eyebrow">Tu biblioteca</p>
+      <h1>Mis quizzes</h1>
+    </div>
+    <a class="btn btn--accent" routerLink="/quizzes/new">+ Crear quiz</a>
+  </header>
+
+  <div class="filters">
+    @for (f of filters; track f.id) {
+      <button type="button" class="chip" [class.is-active]="filter() === f.id"
+        [attr.aria-pressed]="filter() === f.id" (click)="filter.set(f.id)">
+        {{ f.label }} <span class="filters__count">{{ counts()[f.id] }}</span>
+      </button>
+    }
+  </div>
+
+  @if (loading()) {
+    <div class="grid-cards">
+      @for (i of [1, 2, 3]; track i) { <div class="skeleton"></div> }
+    </div>
+  } @else if (visible().length) {
+    <div class="grid-cards">
+      @for (quiz of visible(); track quiz._id) {
+        <app-quiz-card [quiz]="quiz" actionLabel="Jugar" (action)="play($event)">
+          <div class="card-actions">
+            <button type="button" class="btn btn--ghost" (click)="edit(quiz)">✎ Editar</button>
+            <button type="button" class="btn btn--ghost card-actions__delete" (click)="remove(quiz)">🗑 Eliminar</button>
+          </div>
+        </app-quiz-card>
+      }
+    </div>
+  } @else {
+    <div class="empty-state">
+      <span class="empty-state__icon" aria-hidden="true">📝</span>
+      <h2>{{ filter() === 'all' ? 'Aún no tienes quizzes' : 'No hay quizzes en esta categoría' }}</h2>
+      <p>Crea uno desde cero o genéralo con IA a partir de un tema.</p>
+      <a class="btn btn--accent" routerLink="/quizzes/new">+ Crear mi primer quiz</a>
+    </div>
+  }
+</div>

@@ -1,0 +1,103 @@
+@use 'mixins' as *;
+
+.q {
+  @include glass;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+  padding: var(--sp-5);
+
+  &__head { display: flex; align-items: center; justify-content: space-between; }
+  &__num { @include label-caps; color: var(--info); }
+  &__tools { display: flex; gap: var(--sp-1); }
+  &__time { max-width: 200px; }
+}
+
+small { font-weight: 400; letter-spacing: 0; text-transform: none; color: var(--text-dim); }
+
+.icon-btn {
+  @include flex-center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  cursor: pointer;
+
+  &:hover:not(:disabled) { background: var(--surface-hover); }
+  &:disabled { opacity: 0.35; cursor: not-allowed; }
+  &--danger { color: var(--danger); }
+}
+
+.opts {
+  display: grid;
+  gap: var(--sp-2);
+
+  @include up(md) { grid-template-columns: 1fr 1fr; }
+}
+
+.opt {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: var(--sp-2);
+  border: 2px solid transparent;
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--answer) 22%, transparent);
+  transition: border-color var(--transition);
+
+  &.is-correct { border-color: var(--success); }
+
+  &__icon {
+    @include flex-center;
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-sm);
+    background: var(--answer);
+    color: var(--text-on-light);
+    font-size: var(--fs-sm);
+  }
+
+  &__input {
+    flex: 1;
+    min-width: 0;
+    padding: var(--sp-2);
+    border: none;
+    background: none;
+
+    &:focus { outline: none; }
+    &::placeholder { color: var(--text-dim); }
+    &.ng-invalid.ng-touched::placeholder { color: var(--danger); }
+  }
+
+  &__mark {
+    @include flex-center;
+    flex-shrink: 0;
+    width: 28px;
+    height: 28px;
+    border: 2px solid var(--border);
+    border-radius: 50%;
+    background: none;
+    color: transparent;
+    cursor: pointer;
+
+    .is-correct & { border-color: var(--success); background: var(--success); color: var(--text-on-light); }
+  }
+
+  &__remove {
+    border: none;
+    background: none;
+    color: var(--text-dim);
+    cursor: pointer;
+    &:hover { color: var(--danger); }
+  }
+}
+
+.add-opt {
+  align-self: flex-start;
+  border: none;
+  background: none;
+  font-size: var(--fs-sm);
+  cursor: pointer;
+}

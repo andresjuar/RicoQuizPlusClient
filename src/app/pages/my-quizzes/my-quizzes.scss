@@ -1,0 +1,29 @@
+.my-quizzes {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-5);
+}
+
+.filters {
+  display: flex;
+  gap: var(--sp-2);
+  overflow-x: auto;
+
+  &__count {
+    margin-left: var(--sp-1);
+    padding: 0 var(--sp-2);
+    border-radius: var(--radius-full);
+    background: var(--surface-strong);
+    font-size: var(--fs-xs);
+  }
+}
+
+.card-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--sp-2);
+
+  .btn { padding: var(--sp-2); font-size: var(--fs-sm); }
+
+  &__delete { color: var(--danger); }
+}

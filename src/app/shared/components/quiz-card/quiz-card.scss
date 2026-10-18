@@ -37,6 +37,7 @@
 
   &__tag { @extend %pill; top: var(--sp-3); left: var(--sp-3); text-transform: uppercase; letter-spacing: 0.08em; }
   &__ai  { @extend %pill; bottom: var(--sp-3); right: var(--sp-3); color: var(--accent); }
+  &__private { @extend %pill; bottom: var(--sp-3); left: var(--sp-3); }
   &__dot { width: 6px; height: 6px; border-radius: 50%; background: var(--tone); }
 
   &__fav {

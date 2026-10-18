@@ -1,0 +1,55 @@
+@use 'mixins' as *;
+
+.dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-6);
+}
+
+.stats {
+  display: grid;
+  gap: var(--sp-3);
+  grid-template-columns: repeat(2, 1fr);
+
+  @include up(md) { grid-template-columns: repeat(4, 1fr); }
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-1);
+  padding: var(--sp-4);
+
+  &__icon { font-size: var(--fs-lg); }
+  &__value { font-size: var(--fs-xl); line-height: 1.1; }
+  &__label { @include label-caps; }
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  list-style: none;
+}
+
+.skeleton--row { min-height: 64px; }
+
+.new-tile {
+  @include flex-center;
+  flex-direction: column;
+  gap: var(--sp-2);
+  min-height: 200px;
+  border: 2px dashed var(--border);
+  border-radius: var(--radius-lg);
+  color: var(--text-muted);
+  font-weight: 600;
+  transition: border-color var(--transition), color var(--transition), background var(--transition);
+
+  span { font-size: var(--fs-2xl); line-height: 1; }
+
+  &:hover {
+    border-color: var(--primary);
+    background: var(--surface);
+    color: var(--text);
+  }
+}

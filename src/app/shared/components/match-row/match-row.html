@@ -1,1 +1,14 @@
-<p>match-row works!</p>
+<article class="row">
+  <span class="row__rank" [class.is-podium]="match().rank <= 3"
+    [attr.aria-label]="'Lugar ' + match().rank">{{ medal() }}</span>
+
+  <div class="row__info">
+    <h3>{{ match().quizTitle }}</h3>
+    <p>{{ match().playedAt | date: 'd MMM y, HH:mm' }} · {{ match().rank }}° de {{ match().totalPlayers }} jugadores</p>
+  </div>
+
+  <div class="row__score">
+    <strong>{{ match().score | number }}</strong>
+    <span>pts</span>
+  </div>
+</article>
