@@ -1,6 +1,6 @@
 import { Injectable, computed, inject, signal } from '@angular/core'
 import { Router } from '@angular/router'
-import { Observable, delay, of, switchMap, tap, throwError, timer } from 'rxjs'
+import { Observable, delay, map, of, switchMap, tap, throwError, timer } from 'rxjs'
 import { User } from '../models/user.model'
 import { MOCK_USER } from '../mocks/mock-data'
 import { TokenStorageService } from './token-storage.service'
@@ -19,11 +19,11 @@ export class AuthService {
   // TODO integración: POST /auth/login
   login (email: string, password: string): Observable<User> {
     // Esto está comentado solo para la captura del error
-    /* if (email === 'error@test.com') {
+    if (email === 'error@test.com') {
       return timer(600).pipe(
         switchMap(() => throwError(() => new Error('Correo o contraseña incorrectos.')))
       )
-    } */
+    }
     return of(MOCK_USER).pipe(
       delay(600),
       tap(user => {
@@ -31,6 +31,14 @@ export class AuthService {
         this._user.set(user)
       })
     )
+  }
+
+    // TODO integración: POST /auth/register
+  register(displayName: string, email: string, password: string): Observable<void> {
+    if (email === 'error@test.com') {
+      return timer(700).pipe(switchMap(() => throwError(() => new Error('Ese correo ya está registrado.'))));
+    }
+    return timer(700).pipe(map(() => undefined));
   }
 
   logout (): void {

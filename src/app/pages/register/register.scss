@@ -1,0 +1,40 @@
+@use 'mixins' as *;
+
+.g-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid #4285f4;
+  color: #4285f4;
+  font-size: var(--fs-xs);
+  font-weight: 700;
+}
+
+.sent {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-3);
+  text-align: center;
+  color: var(--text-muted);
+
+  strong { color: var(--text); }
+
+  &__icon {
+    @include flex-center;
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: var(--primary-gradient);
+    font-size: var(--fs-xl);
+    color: #fff;
+  }
+}
+
+.demo-link {
+  align-self: center;
+  font-size: var(--fs-xs);
+}

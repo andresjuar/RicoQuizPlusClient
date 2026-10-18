@@ -62,7 +62,8 @@ button, input, select, textarea { font: inherit; color: inherit; }
 
   &::placeholder { color: var(--text-dim); }
   &:focus { outline: none; border-color: var(--primary); }
-  &.ng-invalid.ng-touched { border-color: var(--danger); }
+  &.ng-invalid.ng-touched,
+  &.is-invalid { border-color: var(--danger); }
 }
 
 // Contenedores

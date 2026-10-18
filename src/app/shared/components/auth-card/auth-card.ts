@@ -7,7 +7,6 @@ import { Component, input } from '@angular/core'
   templateUrl: './auth-card.html'
 })
 export class AuthCard {
-  readonly eyebrow = input<string>()
   readonly heading = input.required<string>()
   readonly subtitle = input<string>()
 }
