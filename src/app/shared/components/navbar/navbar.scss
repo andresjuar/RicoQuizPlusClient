@@ -1,0 +1,138 @@
+@use 'mixins' as *;
+
+.nav {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgb(13 11 43 / 0.75);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+
+  &__inner {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: var(--sp-5);
+    height: 64px;
+  }
+
+  &__brand {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-2);
+    font-size: var(--fs-lg);
+    font-weight: 700;
+  }
+
+  &__logo {
+    @include flex-center;
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-sm);
+    background: var(--primary-gradient);
+    font-size: var(--fs-sm);
+  }
+
+  &__plus { color: var(--accent); }
+
+  // En móvil es un panel desplegable; desde md, una fila
+  &__links {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    flex-direction: column;
+    padding: var(--sp-4);
+    background: var(--bg-1);
+    border-bottom: 1px solid var(--border);
+
+    &.is-open { display: flex; }
+
+    a {
+      padding: var(--sp-2) var(--sp-4);
+      border-radius: var(--radius-full);
+      font-size: var(--fs-sm);
+      color: var(--text-muted);
+      transition: color var(--transition), background var(--transition);
+
+      &:hover { color: var(--text); }
+      &.is-active { color: var(--text); background: var(--surface-strong); }
+    }
+
+    @include up(md) {
+      display: flex;
+      position: static;
+      flex-direction: row;
+      gap: var(--sp-1);
+      padding: 0;
+      background: none;
+      border: none;
+    }
+  }
+
+  &__actions {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-2);
+    margin-left: auto;
+
+    .btn { padding: var(--sp-2) var(--sp-4); font-size: var(--fs-sm); }
+  }
+
+  &__toggle {
+    background: none;
+    border: none;
+    font-size: var(--fs-lg);
+    cursor: pointer;
+
+    @include up(md) { display: none; }
+  }
+
+  &__user { position: relative; }
+
+  &__user-btn {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-2);
+    padding: var(--sp-1) var(--sp-3) var(--sp-1) var(--sp-1);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-full);
+    font-size: var(--fs-sm);
+    cursor: pointer;
+  }
+
+  &__dropdown {
+    position: absolute;
+    right: 0;
+    top: calc(100% + var(--sp-2));
+    min-width: 180px;
+    display: flex;
+    flex-direction: column;
+    padding: var(--sp-2);
+    background: var(--bg-1);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-md);
+
+    a, button {
+      padding: var(--sp-2) var(--sp-3);
+      border: none;
+      border-radius: var(--radius-sm);
+      background: none;
+      text-align: left;
+      font-size: var(--fs-sm);
+      cursor: pointer;
+
+      &:hover { background: var(--surface-hover); }
+    }
+
+    button { color: var(--danger); }
+  }
+}
+
+.hide-mobile {
+  display: none !important;
+  @include up(md) { display: inline-flex !important; }
+}
