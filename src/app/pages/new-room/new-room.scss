@@ -1,0 +1,156 @@
+@use 'mixins' as *;
+
+:host { display: block; }
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-5);
+  padding-block: var(--sp-6) var(--sp-8);
+
+  &__head { display: flex; flex-direction: column; gap: var(--sp-1); }
+  &__title { font-size: var(--fs-xl); font-weight: 600; line-height: 1.2; @include up(md) { font-size: var(--fs-2xl); } }
+  &__text { color: var(--text-muted); }
+}
+
+// Selector de origen: existente / IA
+.seg {
+  align-self: flex-start;
+  display: inline-flex;
+  padding: var(--sp-1);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+
+  &__btn {
+    padding: var(--sp-2) var(--sp-4);
+    border: none;
+    border-radius: var(--radius-full);
+    background: transparent;
+    font-weight: 600;
+    font-size: var(--fs-sm);
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: background var(--transition), color var(--transition);
+
+    &--on { background: var(--primary); color: #fff; }
+  }
+}
+
+.grid {
+  list-style: none;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--sp-3);
+
+  @include up(md) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  @include up(lg) { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+.qcard {
+  @include glass;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  width: 100%;
+  height: 100%;
+  padding: var(--sp-4);
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--transition), border-color var(--transition);
+
+  &:hover { background: var(--surface-hover); }
+  &--on { border-color: var(--primary); background: var(--surface-hover); box-shadow: var(--shadow-glow); }
+
+  &__tags { display: flex; flex-wrap: wrap; gap: var(--sp-1); padding-right: var(--sp-6); min-height: 1.5rem; }
+  &__ai { color: var(--accent); }
+  &__title { font-size: var(--fs-lg); font-weight: 600; line-height: 1.25; }
+  &__meta { font-size: var(--fs-sm); color: var(--text-muted); }
+
+  &__desc {
+    font-size: var(--fs-sm);
+    color: var(--text-dim);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  &__check {
+    position: absolute;
+    top: var(--sp-3);
+    right: var(--sp-3);
+    @include flex-center;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--primary);
+    color: #fff;
+  }
+}
+
+.empty { padding: var(--sp-6) 0; text-align: center; color: var(--text-muted); }
+
+// Panel de IA
+.ai {
+  &__form { display: flex; flex-direction: column; gap: var(--sp-4); }
+  &__chips { display: flex; flex-wrap: wrap; gap: var(--sp-2); }
+
+  &__center {
+    @include flex-center(var(--sp-3));
+    flex-direction: column;
+    padding: var(--sp-5) var(--sp-3);
+    text-align: center;
+  }
+
+  &__hint { font-size: var(--fs-sm); color: var(--text-muted); }
+  &__result { font-size: var(--fs-xl); font-weight: 600; }
+
+  &__spinner {
+    width: 44px;
+    height: 44px;
+    border: 4px solid var(--surface-strong);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.9s linear infinite;
+
+    @media (prefers-reduced-motion: reduce) { animation-duration: 3s; }
+  }
+}
+
+.chip {
+  padding: var(--sp-1) var(--sp-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  background: var(--surface);
+  font-size: var(--fs-sm);
+  cursor: pointer;
+  transition: background var(--transition);
+
+  &:hover { background: var(--surface-hover); }
+}
+
+// Barra de acción fija abajo
+.bar {
+  @include glass;
+  background: var(--bg-1);
+  position: sticky;
+  bottom: var(--sp-4);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  padding: var(--sp-3) var(--sp-4);
+
+  &__info { display: flex; flex-direction: column; min-width: 0; }
+  &__label { @include label-caps; }
+  &__title { @include truncate; }
+  &__meta { font-weight: 400; color: var(--text-muted); }
+  &__empty { color: var(--text-dim); }
+  &__actions { display: flex; gap: var(--sp-2); }
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
