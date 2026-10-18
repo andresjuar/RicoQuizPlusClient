@@ -33,12 +33,29 @@ export class AuthService {
     )
   }
 
-    // TODO integración: POST /auth/register
-  register(displayName: string, email: string, password: string): Observable<void> {
+  // TODO integración: POST /auth/register
+  register (displayName: string, email: string, password: string): Observable<void> {
     if (email === 'error@test.com') {
-      return timer(700).pipe(switchMap(() => throwError(() => new Error('Ese correo ya está registrado.'))));
+      return timer(700).pipe(
+        switchMap(() => throwError(() => new Error('Ese correo ya está registrado.')))
+      )
     }
-    return timer(700).pipe(map(() => undefined));
+    return timer(700).pipe(map(() => undefined))
+  }
+
+  // TODO integración: GET /auth/activate/:token
+  activate (token: string): Observable<void> {
+    if (token === 'expired') {
+      return timer(900).pipe(
+        switchMap(() => throwError(() => new Error('El enlace es inválido o ya expiró.')))
+      )
+    }
+    return timer(900).pipe(map(() => undefined))
+  }
+
+  // TODO integración: POST /auth/resend-activation
+  resendActivation (email: string): Observable<void> {
+    return timer(600).pipe(map(() => undefined))
   }
 
   logout (): void {

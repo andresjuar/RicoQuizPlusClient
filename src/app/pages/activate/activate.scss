@@ -1,0 +1,36 @@
+@use 'mixins' as *;
+
+.status {
+  @include flex-center;
+  padding-block: var(--sp-2);
+
+  &__icon {
+    @include flex-center;
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    font-size: var(--fs-2xl);
+    font-weight: 700;
+    color: var(--text-on-light);
+    animation: pop 300ms ease-out;
+
+    &--ok    { background: var(--success); }
+    &--error { background: var(--danger); color: #fff; }
+  }
+}
+
+.spinner {
+  width: 48px;
+  height: 48px;
+  border: 4px solid var(--surface-strong);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: spin 800ms linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+@keyframes pop {
+  from { transform: scale(0.6); opacity: 0; }
+  to   { transform: scale(1);   opacity: 1; }
+}

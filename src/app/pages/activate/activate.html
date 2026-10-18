@@ -1,1 +1,46 @@
-<p>activate works!</p>
+<app-auth-card
+  [heading]="copy[state()].heading"
+  [subtitle]="copy[state()].subtitle">
+
+  @switch (state()) {
+    @case ('verifying') {
+      <div class="status">
+        <span class="spinner" aria-label="Cargando"></span>
+      </div>
+    }
+
+    @case ('success') {
+      <div class="status">
+        <span class="status__icon status__icon--ok" aria-hidden="true">✓</span>
+      </div>
+      <a class="btn btn--accent btn--block" routerLink="/login">Iniciar sesión</a>
+    }
+
+    @case ('invalid') {
+      <div class="status">
+        <span class="status__icon status__icon--error" aria-hidden="true">!</span>
+      </div>
+
+      <form class="stack" [formGroup]="resendForm" (ngSubmit)="resend()" novalidate>
+        <div class="field">
+          <label for="email">Correo de tu cuenta</label>
+          <input id="email" type="email" class="input" formControlName="email"
+            placeholder="tu@correo.com" autocomplete="email" />
+          @if (resendForm.controls.email.touched && resendForm.controls.email.invalid) {
+            <span class="field__error">
+              @if (resendForm.controls.email.hasError('required')) { El correo es obligatorio. }
+              @else { Ingresa un correo válido. }
+            </span>
+          }
+        </div>
+
+        <button type="submit" class="btn btn--accent btn--block"
+          [disabled]="resendForm.invalid || resending()">
+          {{ resending() ? 'Enviando…' : 'Reenviar enlace' }}
+        </button>
+      </form>
+    }
+  }
+
+  <p authFooter><a class="link" routerLink="/">Volver al inicio</a></p>
+</app-auth-card>
