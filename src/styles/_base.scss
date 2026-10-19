@@ -92,6 +92,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .rq-backdrop {
   background: rgb(5 4 20 / 0.7);
   backdrop-filter: blur(4px);
+  transition-duration: 200ms !important;
 }
 
 .cdk-dialog-container:focus { outline: none; }

@@ -6,6 +6,7 @@ export const MAX_OPTIONS = 4;
 
 export type QuestionForm = FormGroup<{
   question: FormControl<string>;
+  imageUrl: FormControl<string | null>;
   options: FormArray<FormControl<string>>;
   correctIndex: FormControl<number | null>;
   timeLimitSeconds: FormControl<number>;
@@ -13,6 +14,7 @@ export type QuestionForm = FormGroup<{
 
 export interface QuestionValue {
   question: string;
+  imageUrl?: string | null;
   options: string[];
   correctIndex: number | null;
   timeLimitSeconds: number;
@@ -28,6 +30,7 @@ export function createQuestionForm(q?: Partial<QuestionValue>): QuestionForm {
       nonNullable: true,
       validators: [Validators.required, Validators.maxLength(300)],
     }),
+    imageUrl: new FormControl<string | null>(q?.imageUrl ?? null),
     options: new FormArray(options.map(o => optionControl(o)), {
       validators: [Validators.minLength(MIN_OPTIONS)],
     }),
@@ -90,5 +93,19 @@ export class QuestionEditor {
     correct.setValue(i);
     correct.markAsDirty();
     correct.markAsTouched();
+  }
+
+  protected onImageSelected(event: Event): void {
+    const file = (event.target as HTMLInputElement).files?.[0];
+    if (!file?.type.startsWith('image/')) return;
+    const image = this.form().controls.imageUrl;
+    image.setValue(URL.createObjectURL(file));
+    image.markAsDirty();
+  }
+
+  protected removeImage(): void {
+    const image = this.form().controls.imageUrl;
+    image.setValue(null);
+    image.markAsDirty();
   }
 }

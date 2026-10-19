@@ -23,6 +23,21 @@
     }
   </div>
 
+    <div class="q__image">
+    @if (form().controls.imageUrl.value; as url) {
+      <div class="q__preview">
+        <img [src]="url" alt="Imagen de la pregunta" />
+        <button type="button" class="icon-btn icon-btn--danger q__remove-img"
+          aria-label="Quitar imagen" (click)="removeImage()">✕</button>
+      </div>
+    } @else {
+      <label class="q__add-img">
+        🖼️ Agregar imagen <small>· opcional</small>
+        <input type="file" accept="image/*" hidden (change)="onImageSelected($event)" />
+      </label>
+    }
+  </div>
+
   <div class="field">
     <label>Opciones <small>· marca la correcta con ✓</small></label>
     <div class="opts">

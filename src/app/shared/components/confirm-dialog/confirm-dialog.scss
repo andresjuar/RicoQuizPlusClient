@@ -14,3 +14,6 @@
     gap: var(--sp-2);
   }
 }
+
+// Sin transiciones: el botón aparece directo con su color
+.btn { transition: none; }
