@@ -132,6 +132,7 @@ export class NewRoom {
   protected createRoom(): void {
     if (!this.selected()) return;
     this.toast.success('Comparte el código con tus jugadores', 'Sala creada');
-    this.router.navigate(['/play', MOCK_ROOM_CODE]);
+    // El quiz viaja en el state de la navegación para que el lobby lo muestre (y el host pueda cambiarlo)
+    this.router.navigate(['/play', MOCK_ROOM_CODE], { state: { quiz: this.selected() } });
   }
 }

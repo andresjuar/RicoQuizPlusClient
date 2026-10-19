@@ -25,6 +25,21 @@
 
   &__access { display: flex; gap: var(--sp-4); }
 
+  &__quiz {
+    @include glass;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--sp-3);
+    padding: var(--sp-3) var(--sp-4);
+  }
+
+  &__quiz-info { display: flex; flex-direction: column; min-width: 0; }
+  &__quiz-label { @include label-caps; }
+  &__quiz-title { @include truncate; }
+  &__quiz-meta { font-size: var(--fs-sm); color: var(--text-muted); }
+
   &__players-head {
     display: flex;
     align-items: baseline;
@@ -52,7 +67,7 @@
     color: var(--accent);
   }
 
-    &__waiting {
+  &__waiting {
     @include flex-center(var(--sp-3));
     @include glass;
     margin-top: var(--sp-3);

@@ -1,9 +1,11 @@
 import { Component, DestroyRef, computed, inject, input, signal } from '@angular/core';
+import { Dialog } from '@angular/cdk/dialog';
 import { Router } from '@angular/router';
 import { environment } from '../../../environments/environment';
 import { GameLeaveState } from '../../shared/guards/leave-game.guard';
-import { MOCK_LEADERBOARD, MOCK_PLAYERS, MOCK_QUESTION } from '../../shared/mocks/mock-data';
+import { MOCK_LEADERBOARD, MOCK_PLAYERS, MOCK_QUESTION, MOCK_QUIZZES } from '../../shared/mocks/mock-data';
 import { AnswerCount, AnswerRevealed, GamePhase, PlayerRole } from '../../shared/models/game.model';
+import { Quiz } from '../../shared/models/quiz.model';
 import { AuthService } from '../../shared/services/auth.service';
 import { ToastService } from '../../shared/services/toast.service';
 import { DevPanel } from './components/dev-panel/dev-panel';
@@ -13,6 +15,7 @@ import { Leaderboard } from './components/leaderboard/leaderboard';
 import { Loading } from './components/loading/loading';
 import { Lobby } from './components/lobby/lobby';
 import { Question } from './components/question/question';
+import { QuizPickerData, QuizPickerDialog } from './components/quiz-picker-dialog/quiz-picker-dialog';
 import { Reveal } from './components/reveal/reveal';
 import { RoomStatus } from './components/room-status/room-status';
 
@@ -38,6 +41,7 @@ export class GameShell implements GameLeaveState {
   private readonly toast = inject(ToastService);
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly dialog = inject(Dialog);
 
   /** Llega de la ruta /play/:code (withComponentInputBinding) */
   readonly code = input.required<string>();
@@ -47,6 +51,9 @@ export class GameShell implements GameLeaveState {
   protected readonly phase = signal<GamePhase>('connecting');
   // Mock: con sesión se asume que quien entra es el host; el selector dev permite cambiarlo
   protected readonly role = signal<PlayerRole>(this.auth.isAuthenticated() ? 'host' : 'player');
+
+  // Quiz de la sala: llega desde /room/new por el state de la navegación (sobrevive a recargas); si no, uno de prueba
+  protected readonly quiz = signal<Quiz>((history.state?.quiz as Quiz | undefined) ?? MOCK_QUIZZES[0]);
 
   // Datos mock
   protected readonly players = MOCK_PLAYERS;
@@ -128,6 +135,25 @@ export class GameShell implements GameLeaveState {
   // Host: del leaderboard a la siguiente pregunta o a los resultados (game:next_question)
   protected onNextQuestion(): void {
     this.goTo(this.isLast() ? 'finished' : 'question');
+  }
+
+  // Host: elegir otro quiz en el lobby.
+  // TODO integración: PATCH /matches/:id/quiz { quizId } (solo el host y mientras la partida esté en espera)
+  protected openQuizPicker(): void {
+    const data: QuizPickerData = { currentId: this.quiz()._id };
+    this.dialog
+      .open<Quiz, QuizPickerData>(QuizPickerDialog, {
+        data,
+        width: '560px',
+        maxWidth: 'calc(100vw - 32px)',
+        backdropClass: 'rq-backdrop',
+        autoFocus: 'dialog',
+      })
+      .closed.subscribe(picked => {
+        if (!picked) return;
+        this.quiz.set(picked);
+        this.toast.success(`Ahora la sala usa «${picked.title}»`, 'Quiz cambiado');
+      });
   }
 
   protected onPlayAgain(): void {
