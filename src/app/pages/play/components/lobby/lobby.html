@@ -38,6 +38,23 @@
         <span>[QR de acceso]</span>
       </div>
     </div>
+
+    @if (quiz(); as q) {
+      <div class="lobby__quiz">
+        <div class="lobby__quiz-info">
+          <span class="lobby__quiz-label">Quiz de la partida</span>
+          <strong class="lobby__quiz-title">{{ q.title }}</strong>
+          <span class="lobby__quiz-meta">{{ quizMeta() }}</span>
+        </div>
+        <button type="button" class="btn btn--ghost" (click)="changeQuiz.emit()">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M7 7h11l-3-3M17 17H6l3 3" />
+          </svg>
+          Cambiar quiz
+        </button>
+      </div>
+    }
   }
 
   <div class="lobby__players">
