@@ -1,0 +1,49 @@
+<div class="dialog" role="dialog" aria-labelledby="qp-title">
+  <h2 id="qp-title" class="dialog__title">Cambiar quiz</h2>
+  <p class="dialog__text">Elige otro quiz para esta sala. Puedes cambiarlo hasta que inicies la partida.</p>
+
+  <input class="input" type="search" aria-label="Buscar quiz" placeholder="Busca por título, tema o etiqueta…"
+         [formControl]="search" />
+
+  <div class="dialog__list-wrap">
+    @if (loading()) {
+      <p class="dialog__state" role="status">Cargando quizzes…</p>
+    } @else if (filtered().length) {
+      <ul class="dialog__list">
+        @for (q of filtered(); track q._id) {
+          <li>
+            <button type="button" class="row" [class.row--on]="picked()?._id === q._id"
+                    [attr.aria-pressed]="picked()?._id === q._id" (click)="pick(q)">
+              <span class="row__main">
+                <strong class="row__title">{{ q.title }}</strong>
+                <span class="row__meta">
+                  {{ plural(q.questions.length) }}@if (q.topic) { · {{ q.topic }} }
+                </span>
+              </span>
+              @if (q._id === currentId) {
+                <span class="badge">Actual</span>
+              }
+              @if (picked()?._id === q._id) {
+                <span class="row__check" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor"
+                       stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M5 12.5l4.5 4.5L19 7.5" />
+                  </svg>
+                </span>
+              }
+            </button>
+          </li>
+        }
+      </ul>
+    } @else {
+      <p class="dialog__state">No encontramos quizzes.</p>
+    }
+  </div>
+
+  <div class="dialog__actions">
+    <button type="button" class="btn btn--ghost" (click)="ref.close()">Cancelar</button>
+    <button type="button" class="btn btn--primary" [disabled]="!canConfirm()" (click)="confirm()">
+      Usar este quiz
+    </button>
+  </div>
+</div>

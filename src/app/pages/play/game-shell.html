@@ -28,7 +28,7 @@
       }
       @case ('lobby') {
         <app-lobby [role]="role()" [code]="code()" [players]="players" [hostSocketId]="hostSocketId"
-                   (start)="onStart()" />
+                   [quiz]="quiz()" (start)="onStart()" (changeQuiz)="openQuizPicker()" />
       }
       @case ('loading') {
         <app-loading />
