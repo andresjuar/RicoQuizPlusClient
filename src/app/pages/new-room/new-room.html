@@ -23,54 +23,50 @@
              [formControl]="search" />
     </div>
 
-    @if (filtered().length) {
-      <ul class="grid">
+    @if (loading()) {
+      <div class="grid-cards">
+        @for (i of [1, 2, 3]; track i) { <div class="skeleton"></div> }
+      </div>
+    } @else if (filtered().length) {
+      <div class="grid-cards">
         @for (q of filtered(); track q._id) {
-          <li>
-            <button type="button" class="qcard" [class.qcard--on]="selected()?.id === q._id"
-                    [attr.aria-pressed]="selected()?.id === q._id" (click)="choose(q)">
-              <span class="qcard__tags">
-                @if (q.topic) { <span class="badge">{{ q.topic }}</span> }
-                @if (q.generatedByAI) { <span class="badge qcard__ai">IA</span> }
-                @if (!q.isPublic) { <span class="badge">Privado</span> }
-              </span>
-              <strong class="qcard__title">{{ q.title }}</strong>
-              <span class="qcard__meta">{{ plural(q.questions.length) }} · {{ minutes(q) }} min</span>
-              @if (q.description) {
-                <span class="qcard__desc">{{ q.description }}</span>
-              }
-              @if (selected()?.id === q._id) {
-                <span class="qcard__check" aria-hidden="true">
-                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor"
-                       stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M5 12.5l4.5 4.5L19 7.5" />
-                  </svg>
-                </span>
-              }
-            </button>
-          </li>
+          <div class="pick" [class.pick--on]="selected()?._id === q._id">
+            <app-quiz-card [quiz]="q" [actionLabel]="labelFor(q)" (action)="choose($event)" />
+          </div>
         }
-      </ul>
+      </div>
     } @else {
-      <p class="empty">No encontramos quizzes con «{{ search.value }}».</p>
+      <div class="empty-state">
+        <span class="empty-state__icon" aria-hidden="true">🔍</span>
+        <h2>No encontramos quizzes</h2>
+        @if (search.value) {
+          <p>No hay resultados para «{{ search.value }}».</p>
+          <button type="button" class="btn btn--ghost" (click)="search.setValue('')">Limpiar búsqueda</button>
+        } @else {
+          <p>Todavía no hay quizzes disponibles.</p>
+        }
+      </div>
     }
   } @else {
-    <section class="ai card">
+    <section class="ai">
       @if (generating()) {
-        <div class="ai__center" role="status" aria-live="polite">
+        <div class="ai__center card" role="status" aria-live="polite">
           <span class="ai__spinner" aria-hidden="true"></span>
           <strong>Generando preguntas con IA…</strong>
           <span class="ai__hint">Esto puede tardar unos segundos.</span>
         </div>
       } @else if (generated(); as g) {
-        <div class="ai__center">
-          <span class="badge qcard__ai">Listo</span>
-          <strong class="ai__result">{{ g.title }}</strong>
-          <span class="ai__hint">{{ plural(g.questionCount) }} generadas y seleccionadas para tu sala.</span>
-          <button type="button" class="btn btn--ghost" (click)="discardGenerated()">Generar otro</button>
+        <div class="ai__result">
+          <div class="pick" [class.pick--on]="selected()?._id === g._id">
+            <app-quiz-card [quiz]="g" [actionLabel]="labelFor(g)" (action)="choose($event)">
+              <button type="button" class="btn btn--ghost btn--block" (click)="discardGenerated()">
+                Generar otro
+              </button>
+            </app-quiz-card>
+          </div>
         </div>
       } @else {
-        <form class="ai__form" (submit)="onGenerate($event)" novalidate>
+        <form class="ai__form card" (submit)="onGenerate($event)" novalidate>
           <div class="field">
             <label for="ai-topic">Tema</label>
             <input id="ai-topic" class="input" type="text" placeholder="Ej. Historia del arte" maxlength="60"
@@ -96,7 +92,7 @@
     <div class="bar__info">
       <span class="bar__label">Quiz seleccionado</span>
       @if (selected(); as s) {
-        <strong class="bar__title">{{ s.title }} <span class="bar__meta">· {{ plural(s.questionCount) }}</span></strong>
+        <strong class="bar__title">{{ s.title }} <span class="bar__meta">· {{ plural(s.questions.length) }}</span></strong>
       } @else {
         <span class="bar__empty">Aún no eliges un quiz</span>
       }
