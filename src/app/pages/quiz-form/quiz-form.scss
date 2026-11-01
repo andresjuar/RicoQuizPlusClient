@@ -59,11 +59,8 @@ small { font-weight: 400; letter-spacing: 0; text-transform: none; color: var(--
   background-size: cover;
   background-position: center;
   color: var(--text-muted);
-  cursor: pointer;
-  transition: border-color var(--transition);
 
   span { font-size: var(--fs-2xl); }
-  &:hover { border-color: var(--primary); }
 }
 
 textarea.input { resize: vertical; }
@@ -170,4 +167,4 @@ textarea.input { resize: vertical; }
   box-shadow: var(--shadow-md);
 
   &__status { margin-right: auto; font-size: var(--fs-xs); color: var(--text-dim); }
-}
+}

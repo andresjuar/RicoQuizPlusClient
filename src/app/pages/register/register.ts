@@ -5,6 +5,7 @@ import { AuthService } from '../../shared/services/auth.service';
 import { ToastService } from '../../shared/services/toast.service';
 import { AuthCard } from '../../shared/components/auth-card/auth-card';
 import { passwordsMatch } from '../../shared/validators/passwords-match.validator';
+import { ApiError } from '../../shared/models/api.model';
 
 @Component({
   imports: [ReactiveFormsModule, RouterLink, AuthCard],
@@ -66,6 +67,13 @@ export class Register {
       },
       error: (err: Error) => {
         this.loading.set(false);
+        // Correo ya registrado: el error va en el campo email, no arriba del formulario.
+        // Angular lo quita solo cuando el usuario vuelve a escribir en el campo.
+        if (err instanceof ApiError && err.status === 400 && /correo/i.test(err.message)) {
+          this.c.email.setErrors({ taken: true });
+          this.c.email.markAsTouched();
+          return;
+        }
         this.serverError.set(err.message);
       },
     });
@@ -78,4 +86,4 @@ export class Register {
   protected registerWithGoogle(): void {
     this.toast.info('El registro con Google estará disponible pronto.');
   }
-}
+}

@@ -49,6 +49,7 @@
         @if (c.email.touched && c.email.invalid) {
           <span class="field__error">
             @if (c.email.hasError('required')) { El correo es obligatorio. }
+            @else if (c.email.hasError('taken')) { Ese correo ya está registrado. <a routerLink="/login">Inicia sesión</a> }
             @else { Ingresa un correo válido. }
           </span>
         }
@@ -94,4 +95,4 @@
   }
 
   <p authFooter>¿Ya tienes cuenta? <a class="link" routerLink="/login">Inicia sesión</a></p>
-</app-auth-card>
+</app-auth-card>

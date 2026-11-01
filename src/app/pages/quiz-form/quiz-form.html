@@ -19,13 +19,13 @@
         </header>
 
         <div class="info-grid">
-          <label class="cover" [style.background-image]="coverPreview() ? 'url(' + coverPreview() + ')' : null">
+          <!-- Subir portada queda para otra entrega: solo se muestra la que ya tenga el quiz -->
+          <div class="cover" [style.background-image]="coverPreview() ? 'url(' + coverPreview() + ')' : null">
             @if (!coverPreview()) {
               <span aria-hidden="true">🖼️</span>
-              <small>Agregar portada</small>
+              <small>Portada · próximamente</small>
             }
-            <input type="file" accept="image/*" hidden (change)="onCoverSelected($event)" />
-          </label>
+          </div>
 
           <div class="stack">
             <div class="field">
@@ -141,4 +141,4 @@
       </footer>
     </form>
   }
-</div>
+</div>
