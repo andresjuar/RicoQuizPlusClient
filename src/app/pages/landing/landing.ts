@@ -9,7 +9,7 @@ import { MatchService } from '../../shared/services/match.service';
 import { ToastService } from '../../shared/services/toast.service';
 import { QuizCard } from '../../shared/components/quiz-card/quiz-card';
 import { CATEGORIES } from '../../shared/models/categories';
-import { Quiz } from '../../shared/models/quiz.model';
+import { QuizSummary } from '../../shared/models/quiz.model';
 
 @Component({
   imports: [ReactiveFormsModule, RouterLink, QuizCard],
@@ -28,8 +28,8 @@ export class Landing {
   protected readonly categories = CATEGORIES;
 
   protected readonly popular = toSignal(
-    this.quizService.getPublic().pipe(
-      map(list => [...list].sort((a, b) => b.timesPlayed - a.timesPlayed).slice(0, 3)),
+    this.quizService.getPublic({ limit: 20 }).pipe(
+      map(page => [...page.data].sort((a, b) => b.timesPlayed - a.timesPlayed).slice(0, 3)),
     ),
   );
 
@@ -66,7 +66,7 @@ export class Landing {
     });
   }
 
-  protected playQuiz(quiz: Quiz): void {
+  protected playQuiz(quiz: QuizSummary): void {
     this.router.navigate(['/room/new'], { queryParams: { quiz: quiz._id } });
   }
 

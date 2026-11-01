@@ -18,7 +18,7 @@
 
   <div class="qc__body">
     <h3 class="qc__title">{{ quiz().title }}</h3>
-    <p class="qc__meta">⏱ {{ quiz().questions.length }} preguntas · {{ minutes() }} min</p>
+    <p class="qc__meta">⏱ {{ quiz().questionCount }} preguntas · {{ minutes() }} min</p>
     @if (quiz().description) { <p class="qc__desc">{{ quiz().description }}</p> }
   </div>
 

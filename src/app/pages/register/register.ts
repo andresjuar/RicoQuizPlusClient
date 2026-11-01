@@ -1,6 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../shared/services/auth.service';
 import { ToastService } from '../../shared/services/toast.service';
 import { AuthCard } from '../../shared/components/auth-card/auth-card';
@@ -16,6 +16,7 @@ export class Register {
   private readonly fb = inject(FormBuilder);
   private readonly auth = inject(AuthService);
   private readonly toast = inject(ToastService);
+  private readonly router = inject(Router);
 
   protected readonly loading = signal(false);
   protected readonly showPassword = signal(false);
@@ -52,8 +53,14 @@ export class Register {
     const { displayName, email, password } = this.form.getRawValue();
 
     this.auth.register(displayName, email, password).subscribe({
-      next: () => {
+      next: res => {
         this.loading.set(false);
+        // Activación apagada en la API: ya hay sesión, directo al dashboard
+        if (!res.requiresActivation) {
+          this.toast.success(`¡Bienvenido, ${res.user.displayName}!`);
+          this.router.navigateByUrl('/dashboard');
+          return;
+        }
         this.sentTo.set(email);
         this.toast.success('Cuenta creada. Revisa tu correo para activarla.');
       },

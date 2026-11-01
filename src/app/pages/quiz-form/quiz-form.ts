@@ -69,14 +69,17 @@ export class QuizForm implements OnInit, HasUnsavedChanges {
     if (!id) return
 
     this.loading.set(true)
-    this.quizService.getById(id).subscribe(quiz => {
-      this.loading.set(false)
-      if (!quiz) {
+    this.quizService.getById(id).subscribe({
+      next: quiz => {
+        this.loading.set(false)
+        this.fill(quiz)
+      },
+      // 404 (no existe o es privado de otro usuario): regresa a la lista
+      error: () => {
+        this.loading.set(false)
         this.toast.error('No encontramos ese quiz.')
         this.router.navigate(['/quizzes/mine'])
-        return
       }
-      this.fill(quiz)
     })
   }
 
@@ -167,13 +170,16 @@ export class QuizForm implements OnInit, HasUnsavedChanges {
 
     const run = () => {
       this.generating.set(true)
-      this.quizService.generate(topic.value.trim(), this.numQuestions.value).subscribe(list => {
-        this.generating.set(false)
-        this.setQuestions(list)
-        if (!this.c.title.value) this.c.title.setValue(`Quiz de ${topic.value.trim()}`)
-        this.form.markAsDirty()
-        this.mode.set('manual')
-        this.toast.success(`Se generaron ${list.length} preguntas. Revísalas antes de guardar.`)
+      this.quizService.generateQuestions(topic.value.trim(), this.numQuestions.value).subscribe({
+        next: list => {
+          this.generating.set(false)
+          this.setQuestions(list)
+          if (!this.c.title.value) this.c.title.setValue(`Quiz de ${topic.value.trim()}`)
+          this.form.markAsDirty()
+          this.mode.set('manual')
+          this.toast.success(`Se generaron ${list.length} preguntas. Revísalas antes de guardar.`)
+        },
+        error: () => this.generating.set(false)
       })
     }
 
@@ -200,13 +206,16 @@ export class QuizForm implements OnInit, HasUnsavedChanges {
     }
 
     this.saving.set(true)
-    this.quizService.save(this.toDraft(), this.id()).subscribe(() => {
-      this.saving.set(false)
-      this.saved = true
-      this.toast.success(
-        this.isEdit() ? 'Los cambios se guardaron correctamente.' : 'El quiz se creó correctamente.'
-      )
-      this.router.navigate(['/quizzes/mine'])
+    this.quizService.save(this.toDraft(), this.id()).subscribe({
+      next: () => {
+        this.saving.set(false)
+        this.saved = true
+        this.toast.success(
+          this.isEdit() ? 'Los cambios se guardaron correctamente.' : 'El quiz se creó correctamente.'
+        )
+        this.router.navigate(['/quizzes/mine'])
+      },
+      error: () => this.saving.set(false) // el botón se vuelve a habilitar; el mensaje lo pone #33
     })
   }
 
