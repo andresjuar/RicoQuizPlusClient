@@ -1,0 +1,29 @@
+@switch (status()) {
+  @case ('loading') {
+    <div class="vs" aria-busy="true" aria-live="polite">
+      <!-- Skeleton propio de la página; si no manda uno, se usa este -->
+      <ng-content select="[skeleton]">
+        <div class="skeleton vs__skeleton"></div>
+      </ng-content>
+      @if (slow()) {
+        <p class="vs__slow">Despertando el servidor… la primera carga puede tardar hasta un minuto.</p>
+      }
+    </div>
+  }
+  @case ('error') {
+    <div class="empty-state vs__error" role="alert">
+      <span class="empty-state__icon" aria-hidden="true">⚠️</span>
+      <h2>{{ errorTitle() }}</h2>
+      <p>{{ errorMessage() }}</p>
+      <button type="button" class="btn btn--ghost" (click)="retry()">↻ Reintentar</button>
+    </div>
+  }
+  @case ('empty') {
+    <div class="empty-state">
+      <span class="empty-state__icon" aria-hidden="true">{{ emptyIcon() }}</span>
+      <h2>{{ emptyTitle() }}</h2>
+      @if (emptyText()) { <p>{{ emptyText() }}</p> }
+      <ng-content select="[empty-action]" />
+    </div>
+  }
+}

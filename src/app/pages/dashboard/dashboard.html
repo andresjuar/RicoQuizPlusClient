@@ -26,23 +26,24 @@
       <a class="link" routerLink="/history">Ver historial →</a>
     </header>
 
-    @if (history(); as matches) {
-      @if (matches.length) {
-        <ul class="list">
-          @for (match of matches.slice(0, 3); track match.matchId) {
-            <li><app-match-row [match]="match" /></li>
-          }
-        </ul>
-      } @else {
-        <div class="empty-state">
-          <span class="empty-state__icon" aria-hidden="true">🎮</span>
-          <h2>Aún no has jugado partidas</h2>
-          <p>Únete con un código o crea tu propia sala.</p>
-        </div>
-      }
-    } @else {
-      <ul class="list">
+    <app-view-state
+      #historyState
+      [resource]="history"
+      emptyIcon="🎮"
+      emptyTitle="Aún no has jugado partidas"
+      emptyText="Únete con un código o crea tu propia sala."
+      errorTitle="No se pudo cargar tu historial"
+    >
+      <ul skeleton class="list">
         @for (i of [1, 2, 3]; track i) { <li class="skeleton skeleton--row"></li> }
+      </ul>
+    </app-view-state>
+
+    @if (historyState.isReady()) {
+      <ul class="list">
+        @for (match of history.value()!.slice(0, 3); track match.matchId) {
+          <li><app-match-row [match]="match" /></li>
+        }
       </ul>
     }
   </section>
@@ -53,18 +54,23 @@
       <a class="link" routerLink="/quizzes/mine">Ver todos →</a>
     </header>
 
-    <div class="grid-cards">
-      @if (myQuizzes(); as quizzes) {
-        @for (quiz of quizzes.data; track quiz._id) {
+    <!-- Aquí "vacío" no aplica: sin quizzes se muestra solo la tarjeta de crear -->
+    <app-view-state #quizzesState [resource]="myQuizzes" [emptyWhen]="null" errorTitle="No se pudieron cargar tus quizzes">
+      <div skeleton class="grid-cards">
+        @for (i of [1, 2, 3]; track i) { <div class="skeleton"></div> }
+      </div>
+    </app-view-state>
+
+    @if (quizzesState.isReady()) {
+      <div class="grid-cards">
+        @for (quiz of myQuizzes.value()!.data; track quiz._id) {
           <app-quiz-card [quiz]="quiz" actionLabel="Jugar" (action)="playQuiz($event)" />
         }
         <a class="new-tile" routerLink="/quizzes/new">
           <span aria-hidden="true">+</span>
           Crear nuevo quiz
         </a>
-      } @else {
-        @for (i of [1, 2, 3]; track i) { <div class="skeleton"></div> }
-      }
-    </div>
+      </div>
+    }
   </section>
-</div>
+</div>
