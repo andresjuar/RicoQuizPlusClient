@@ -1,2 +1,7 @@
+@if (auth.restoring()) {
+  <div class="server-banner" role="status">
+    Conectando con el servidor… si estuvo inactivo puede tardar hasta un minuto.
+  </div>
+}
 <router-outlet></router-outlet>
 <app-toast-container></app-toast-container>

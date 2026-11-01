@@ -1,0 +1,1761 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "API proyecto final Andres y Adan",
+    "version": "0.0.1",
+    "description": "Rico quiz plus"
+  },
+  "servers": [
+    {
+      "url": "https://proyecto-final-servidor-k6wl.onrender.com"
+    }
+  ],
+  "components": {
+    "schemas": {
+      "Error": {
+        "type": "object",
+        "description": "Formato único de error de la API (lo genera errorMiddleware)",
+        "required": [
+          "message"
+        ],
+        "properties": {
+          "message": {
+            "type": "string",
+            "example": "Quiz no encontrado"
+          },
+          "errores": {
+            "type": "array",
+            "description": "Solo en errores de validación (400)",
+            "items": {
+              "type": "string"
+            },
+            "example": [
+              "El título debe tener al menos 3 caracteres"
+            ]
+          }
+        }
+      },
+      "AuthResponse": {
+        "type": "object",
+        "properties": {
+          "token": {
+            "type": "string",
+            "example": "eyJhbGciOi..."
+          },
+          "user": {
+            "$ref": "#/components/schemas/Usuario"
+          }
+        }
+      },
+      "QuizSummary": {
+        "type": "object",
+        "description": "Quiz en listados (sin preguntas, para no exponer respuestas)",
+        "properties": {
+          "_id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "coverImageUrl": {
+            "type": "string"
+          },
+          "topic": {
+            "type": "string"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "isPublic": {
+            "type": "boolean"
+          },
+          "timesPlayed": {
+            "type": "integer"
+          },
+          "questionCount": {
+            "type": "integer",
+            "example": 10
+          },
+          "totalSeconds": {
+            "type": "integer",
+            "example": 200
+          },
+          "owner": {
+            "type": "object",
+            "properties": {
+              "_id": {
+                "type": "string"
+              },
+              "displayName": {
+                "type": "string"
+              }
+            }
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "QuizPage": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/QuizSummary"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "example": 42
+          },
+          "page": {
+            "type": "integer",
+            "example": 1
+          },
+          "limit": {
+            "type": "integer",
+            "example": 12
+          },
+          "totalPages": {
+            "type": "integer",
+            "example": 4
+          }
+        }
+      },
+      "Usuario": {
+        "type": "object",
+        "properties": {
+          "_id": {
+            "type": "string",
+            "example": "64f1a2b3c4d5e6f7a8b9c0d1"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "example": "usuario@ejemplo.com"
+          },
+          "displayName": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 50,
+            "example": "Andres"
+          },
+          "avatarUrl": {
+            "type": "string",
+            "example": ""
+          },
+          "isActive": {
+            "type": "boolean",
+            "default": false
+          },
+          "authProvider": {
+            "type": "string",
+            "enum": [
+              "local",
+              "google"
+            ],
+            "default": "local"
+          },
+          "createdQuizzes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "Question": {
+        "type": "object",
+        "required": [
+          "question",
+          "options",
+          "correctIndex"
+        ],
+        "properties": {
+          "question": {
+            "type": "string",
+            "example": "¿Cuál es la capital de Francia?"
+          },
+          "imageUrl": {
+            "type": "string",
+            "example": ""
+          },
+          "options": {
+            "type": "array",
+            "minItems": 2,
+            "items": {
+              "type": "string"
+            },
+            "example": [
+              "Madrid",
+              "París",
+              "Roma",
+              "Berlín"
+            ]
+          },
+          "correctIndex": {
+            "type": "integer",
+            "minimum": 0,
+            "example": 1
+          },
+          "timeLimitSeconds": {
+            "type": "integer",
+            "minimum": 5,
+            "maximum": 120,
+            "default": 20
+          }
+        }
+      },
+      "Quiz": {
+        "type": "object",
+        "required": [
+          "title",
+          "owner",
+          "questions"
+        ],
+        "properties": {
+          "_id": {
+            "type": "string",
+            "example": "64f1a2b3c4d5e6f7a8b9c0d1"
+          },
+          "title": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 100,
+            "example": "Trivia de Geografía"
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 500,
+            "example": ""
+          },
+          "coverImageUrl": {
+            "type": "string",
+            "example": ""
+          },
+          "owner": {
+            "type": "string",
+            "example": "64f1a2b3c4d5e6f7a8b9c0d1"
+          },
+          "topic": {
+            "type": "string",
+            "example": ""
+          },
+          "generatedByAI": {
+            "type": "boolean",
+            "default": false
+          },
+          "isPublic": {
+            "type": "boolean",
+            "default": false
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "timesPlayed": {
+            "type": "integer",
+            "minimum": 0,
+            "default": 0
+          },
+          "questions": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "$ref": "#/components/schemas/Question"
+            }
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "Player": {
+        "type": "object",
+        "properties": {
+          "user": {
+            "type": "string",
+            "nullable": true,
+            "example": "64f1a2b3c4d5e6f7a8b9c0d1"
+          },
+          "guestName": {
+            "type": "string",
+            "nullable": true,
+            "example": "Invitado123"
+          },
+          "score": {
+            "type": "integer",
+            "minimum": 0,
+            "default": 0
+          },
+          "correctAnswers": {
+            "type": "integer",
+            "minimum": 0,
+            "default": 0
+          }
+        }
+      },
+      "Match": {
+        "type": "object",
+        "required": [
+          "host",
+          "roomCode"
+        ],
+        "properties": {
+          "_id": {
+            "type": "string",
+            "example": "64f1a2b3c4d5e6f7a8b9c0d1"
+          },
+          "quiz": {
+            "type": "string",
+            "nullable": true,
+            "example": "64f1a2b3c4d5e6f7a8b9c0d1"
+          },
+          "host": {
+            "type": "string",
+            "example": "64f1a2b3c4d5e6f7a8b9c0d1"
+          },
+          "roomCode": {
+            "type": "string",
+            "example": "ABC123"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "waiting",
+              "in_progress",
+              "finished",
+              "cancelled"
+            ],
+            "default": "waiting"
+          },
+          "startedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "finishedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "players": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Player"
+            }
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  },
+  "paths": {
+    "/users/{id}": {
+      "get": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Obtiene un usuario por id",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Datos del usuario"
+          },
+          "404": {
+            "description": "Usuario no encontrado"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Edita displayName y/o avatarUrl de un usuario",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id"
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": [],
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "displayName": {
+                    "type": "string",
+                    "example": "Andres Juarez"
+                  },
+                  "avatarUrl": {
+                    "type": "string",
+                    "example": "https://picsum.photos/seed/avatar/100/100"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Usuario actualizado"
+          },
+          "404": {
+            "description": "Usuario no encontrado"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Elimina la cuenta de un usuario",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Usuario eliminado"
+          },
+          "404": {
+            "description": "Usuario no encontrado"
+          }
+        }
+      }
+    },
+    "/quizzes": {
+      "get": {
+        "tags": [
+          "Quizzes"
+        ],
+        "summary": "Lista los quizzes públicos (búsqueda y paginado, para Explorar)",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "q",
+            "schema": {
+              "type": "string",
+              "example": "superhéroes"
+            },
+            "required": false,
+            "description": "Busca en título, descripción y tags (sin distinguir mayúsculas)"
+          },
+          {
+            "in": "query",
+            "name": "topic",
+            "schema": {
+              "type": "string",
+              "example": "Ciencia"
+            },
+            "required": false,
+            "description": "Filtra por tema exacto"
+          },
+          {
+            "in": "query",
+            "name": "tags",
+            "schema": {
+              "type": "string"
+            },
+            "required": false,
+            "description": "Tags separados por coma (ej: ciencia,literatura,superhéroes)"
+          },
+          {
+            "in": "query",
+            "name": "owner",
+            "schema": {
+              "type": "string"
+            },
+            "required": false,
+            "description": "Filtra quizzes por id del creador (devuelve sus quizzes públicos)"
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            },
+            "required": false,
+            "description": "Número de página"
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            },
+            "required": false,
+            "description": "Cantidad de resultados por página (máximo 50)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Página de quizzes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QuizPage"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Quizzes"
+        ],
+        "summary": "Crea un quiz manualmente",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "title",
+                  "questions"
+                ],
+                "properties": {
+                  "title": {
+                    "type": "string",
+                    "minLength": 3,
+                    "maxLength": 100,
+                    "example": "Quiz de superhéroes"
+                  },
+                  "description": {
+                    "type": "string",
+                    "maxLength": 500,
+                    "example": "Preguntas sobre el universo Marvel y DC"
+                  },
+                  "coverImageUrl": {
+                    "type": "string",
+                    "example": "https://picsum.photos/seed/quiz/400/200"
+                  },
+                  "topic": {
+                    "type": "string",
+                    "example": "cómics"
+                  },
+                  "isPublic": {
+                    "type": "boolean",
+                    "default": false
+                  },
+                  "tags": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "example": [
+                      "superhéroes",
+                      "marvel",
+                      "dc"
+                    ]
+                  },
+                  "generatedByAI": {
+                    "type": "boolean",
+                    "default": false
+                  },
+                  "questions": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                      "type": "object",
+                      "required": [
+                        "question",
+                        "options",
+                        "correctIndex"
+                      ],
+                      "properties": {
+                        "question": {
+                          "type": "string",
+                          "example": "¿Cuál es el alter ego de Batman?"
+                        },
+                        "options": {
+                          "type": "array",
+                          "minItems": 2,
+                          "items": {
+                            "type": "string"
+                          },
+                          "example": [
+                            "Bruce Wayne",
+                            "Clark Kent",
+                            "Tony Stark",
+                            "Peter Parker"
+                          ]
+                        },
+                        "correctIndex": {
+                          "type": "integer",
+                          "description": "Índice (base 0) de la opción correcta dentro del arreglo options",
+                          "example": 0
+                        },
+                        "timeLimitSeconds": {
+                          "type": "integer",
+                          "minimum": 5,
+                          "maximum": 120,
+                          "default": 20,
+                          "example": 20
+                        },
+                        "imageUrl": {
+                          "type": "string",
+                          "example": "https://picsum.photos/seed/batman/400/200"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Quiz creado"
+          },
+          "400": {
+            "description": "Faltan campos requeridos o validación fallida"
+          },
+          "401": {
+            "description": "No autorizado (token faltante o inválido)"
+          }
+        }
+      }
+    },
+    "/quizzes/mine": {
+      "get": {
+        "tags": [
+          "Quizzes"
+        ],
+        "summary": "Lista los quizzes del usuario autenticado (públicos y privados)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "visibility",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "all",
+                "public",
+                "private"
+              ],
+              "default": "all"
+            }
+          },
+          {
+            "in": "query",
+            "name": "q",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "topic",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Página de quizzes del usuario",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QuizPage"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autorizado"
+          }
+        }
+      }
+    },
+    "/quizzes/generate": {
+      "post": {
+        "tags": [
+          "Quizzes"
+        ],
+        "summary": "Genera un quiz automáticamente mediante IA a partir de un tema",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "topic"
+                ],
+                "properties": {
+                  "topic": {
+                    "type": "string",
+                    "description": "Tema sobre el que se generarán las preguntas",
+                    "example": "historia de México"
+                  },
+                  "numQuestions": {
+                    "type": "integer",
+                    "description": "Cantidad de preguntas a generar (por defecto 5)",
+                    "default": 5,
+                    "example": 10
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Preguntas generadas (integración con Gemini AI pendiente)"
+          },
+          "400": {
+            "description": "El topic es requerido"
+          }
+        }
+      }
+    },
+    "/quizzes/generate-questions": {
+      "post": {
+        "tags": [
+          "Quizzes"
+        ],
+        "summary": "Genera preguntas con IA sin guardar el quiz (para revisarlas en el formulario)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "topic"
+                ],
+                "properties": {
+                  "topic": {
+                    "type": "string",
+                    "example": "Sistema solar"
+                  },
+                  "numQuestions": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 20,
+                    "default": 5
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Preguntas generadas ({ questions })",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "questions": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Question"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Falta el topic"
+          },
+          "401": {
+            "description": "No autorizado"
+          },
+          "502": {
+            "description": "Falló la generación con IA"
+          }
+        }
+      }
+    },
+    "/quizzes/{id}/image": {
+      "post": {
+        "tags": [
+          "Quizzes"
+        ],
+        "summary": "Sube/reemplaza la imagen de portada de un quiz (Cloudinary)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "image"
+                ],
+                "properties": {
+                  "image": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Url de la imagen subida"
+          },
+          "400": {
+            "description": "Falta el archivo, no es una imagen, o pesa más de 5MB"
+          },
+          "403": {
+            "description": "No eres el owner de este quiz"
+          },
+          "404": {
+            "description": "Quiz no encontrado"
+          },
+          "502": {
+            "description": "Falló la subida a Cloudinary"
+          }
+        }
+      }
+    },
+    "/quizzes/{id}/questions/{questionIndex}/image": {
+      "post": {
+        "tags": [
+          "Quizzes"
+        ],
+        "summary": "Sube/reemplaza la imagen de una pregunta específica del quiz (Cloudinary)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "questionIndex",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "Índice (base 0) de la pregunta dentro del arreglo questions del quiz"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "image"
+                ],
+                "properties": {
+                  "image": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Url de la imagen subida"
+          },
+          "400": {
+            "description": "Falta el archivo, no es una imagen, pesa más de 5MB, o questionIndex fuera de rango"
+          },
+          "403": {
+            "description": "No eres el owner de este quiz"
+          },
+          "404": {
+            "description": "Quiz no encontrado"
+          },
+          "502": {
+            "description": "Falló la subida a Cloudinary"
+          }
+        }
+      }
+    },
+    "/quizzes/{id}": {
+      "get": {
+        "tags": [
+          "Quizzes"
+        ],
+        "summary": "Obtiene los datos de un quiz",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Detalle del quiz"
+          },
+          "404": {
+            "description": "Quiz no encontrado"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Quizzes"
+        ],
+        "summary": "Edita parcialmente un quiz existente (solo los campos enviados serán actualizados)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "description": "Puedes enviar solo los campos que deseas actualizar",
+                "properties": {
+                  "title": {
+                    "type": "string",
+                    "example": "Superhéroes Actualizado"
+                  },
+                  "isPublic": {
+                    "type": "boolean",
+                    "example": true
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Quiz actualizado"
+          },
+          "404": {
+            "description": "Quiz no encontrado"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Quizzes"
+        ],
+        "summary": "Elimina un quiz",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Quiz eliminado"
+          },
+          "404": {
+            "description": "Quiz no encontrado"
+          }
+        }
+      }
+    },
+    "/matches": {
+      "post": {
+        "tags": [
+          "Matches"
+        ],
+        "summary": "Crea una nueva partida (el quiz se asigna después, no aquí)",
+        "description": "Crea la sala con su roomCode. El quiz es opcional en este paso: se asigna después con PATCH /matches/{id}/quiz (uno ya existente) o POST /matches/{id}/generate-quiz (generado con IA a partir de un tema), en cualquier momento mientras la partida siga en 'waiting'.\n",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "quiz": {
+                    "type": "string",
+                    "description": "(Opcional) ObjectId de un quiz, si ya se quiere asignar de una vez",
+                    "example": "6a5459a21c95d7b04766c4a8"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Partida creada (incluye el roomCode generado)"
+          },
+          "401": {
+            "description": "No autorizado (token faltante o inválido)"
+          }
+        }
+      }
+    },
+    "/matches/rooms/{code}/exists": {
+      "get": {
+        "tags": [
+          "Matches"
+        ],
+        "summary": "Verifica si una sala existe y si ya está en progreso",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "code",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "ABCD"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Estado de la sala"
+          }
+        }
+      }
+    },
+    "/matches/user/{userId}": {
+      "get": {
+        "tags": [
+          "Matches"
+        ],
+        "summary": "Lista el historial de partidas de un usuario (como host o jugador)",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "6650f2a3b5e4c10087654321"
+            }
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            },
+            "required": false,
+            "description": "Número de página"
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            },
+            "required": false,
+            "description": "Cantidad de resultados por página"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Historial de partidas con paginado"
+          }
+        }
+      }
+    },
+    "/matches/{id}/quiz": {
+      "patch": {
+        "tags": [
+          "Matches"
+        ],
+        "summary": "Asigna un quiz ya existente a una partida en espera",
+        "description": "Solo el host, y solo mientras la partida esté en 'waiting'. Se puede llamar varias veces para cambiar de quiz antes de iniciar.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "quizId"
+                ],
+                "properties": {
+                  "quizId": {
+                    "type": "string",
+                    "example": "6a5459a21c95d7b04766c4a8"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Partida actualizada con el quiz asignado"
+          },
+          "400": {
+            "description": "La partida ya no está en 'waiting', o falta quizId"
+          },
+          "403": {
+            "description": "No eres el host de esta partida"
+          },
+          "404": {
+            "description": "Partida o quiz no encontrados"
+          }
+        }
+      }
+    },
+    "/matches/{id}/generate-quiz": {
+      "post": {
+        "tags": [
+          "Matches"
+        ],
+        "summary": "Genera un quiz con IA a partir de un tema y lo asigna a la partida",
+        "description": "Solo el host, y solo mientras la partida esté en 'waiting'. Se puede llamar varias veces para regenerar/cambiar de tema antes de iniciar.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "topic"
+                ],
+                "properties": {
+                  "topic": {
+                    "type": "string",
+                    "example": "Historia de México"
+                  },
+                  "numQuestions": {
+                    "type": "integer",
+                    "default": 10,
+                    "example": 10
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Partida actualizada con el quiz generado"
+          },
+          "400": {
+            "description": "La partida ya no está en 'waiting', o falta el topic"
+          },
+          "403": {
+            "description": "No eres el host de esta partida"
+          },
+          "404": {
+            "description": "Partida no encontrada"
+          },
+          "502": {
+            "description": "Falló la generación con IA"
+          }
+        }
+      }
+    },
+    "/matches/{id}": {
+      "get": {
+        "tags": [
+          "Matches"
+        ],
+        "summary": "Obtiene el resultado y detalles de una partida",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Resultado y detalles de la partida"
+          },
+          "404": {
+            "description": "Partida no encontrada"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Matches"
+        ],
+        "summary": "Actualiza el status y/o timestamps de una partida",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "waiting",
+                      "in_progress",
+                      "finished",
+                      "cancelled"
+                    ],
+                    "example": "in_progress"
+                  },
+                  "startedAt": {
+                    "type": "string",
+                    "format": "date-time",
+                    "description": "Si se omite y status pasa a in_progress, se asigna la fecha actual",
+                    "example": "2025-01-15T20:30:00.000Z"
+                  },
+                  "finishedAt": {
+                    "type": "string",
+                    "format": "date-time",
+                    "description": "Si se omite y status pasa a finished, se asigna la fecha actual",
+                    "example": "2025-01-15T21:00:00.000Z"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Partida actualizada"
+          },
+          "404": {
+            "description": "Partida no encontrada"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Matches"
+        ],
+        "summary": "Elimina una partida",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Partida eliminada"
+          },
+          "404": {
+            "description": "Partida no encontrada"
+          }
+        }
+      }
+    },
+    "/": {
+      "get": {
+        "summary": "pagina de inicio",
+        "responses": {
+          "200": {
+            "description": "homepage"
+          },
+          "401": {
+            "description": "falta el token de autorización"
+          }
+        }
+      }
+    },
+    "/auth/register": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Registra un nuevo usuario con email y contraseña",
+        "description": "Depende de REQUIRE_EMAIL_ACTIVATION. Si está apagada (default) la cuenta se crea activa y la respuesta trae { token, user }. Si está prendida, la cuenta se crea inactiva, se manda el correo de activación y la respuesta NO trae token; hay que activar (GET /auth/activate/{token}) antes del login.\n",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "email",
+                  "displayName",
+                  "password"
+                ],
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "example": "andres@example.com"
+                  },
+                  "displayName": {
+                    "type": "string",
+                    "example": "Andres"
+                  },
+                  "password": {
+                    "type": "string",
+                    "example": "Password123"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Cuenta creada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "requiresActivation": {
+                      "type": "boolean"
+                    },
+                    "token": {
+                      "type": "string",
+                      "description": "Solo si requiresActivation es false"
+                    },
+                    "user": {
+                      "$ref": "#/components/schemas/Usuario"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Error de validación o email ya registrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/activate/{token}": {
+      "get": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Activa una cuenta a partir del link mandado por correo",
+        "description": "Lo llama la página /activate/{token} del cliente (responde JSON). Si se abre directo en el navegador (Accept text/html) responde una página HTML.\n",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Cuenta activada ({ message })"
+          },
+          "400": {
+            "description": "Token inválido o expirado"
+          },
+          "404": {
+            "description": "El usuario de este link ya no existe"
+          }
+        }
+      }
+    },
+    "/auth/resend-activation": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Reenvía el correo de activación de cuenta",
+        "description": "Respuesta siempre genérica (mismo mensaje exista o no el correo, esté activa o no la cuenta) para no filtrar esa información por este endpoint.\n",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "email"
+                ],
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "example": "andres@example.com"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Mensaje genérico (siempre, sin importar si el correo existe)"
+          },
+          "400": {
+            "description": "Falta el email"
+          }
+        }
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Inicia sesión con email y contraseña",
+        "description": "Falla con 403 si REQUIRE_EMAIL_ACTIVATION está prendida y la cuenta no se ha activado. Falla con 400 si la cuenta se creó con Google y no tiene contraseña.\n",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "email",
+                  "password"
+                ],
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "example": "andres@example.com"
+                  },
+                  "password": {
+                    "type": "string",
+                    "example": "Password123"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login exitoso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Faltan campos o la cuenta es solo de Google"
+          },
+          "401": {
+            "description": "Credenciales inválidas"
+          },
+          "403": {
+            "description": "La cuenta existe pero no ha sido activada"
+          }
+        }
+      }
+    },
+    "/auth/me": {
+      "get": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Obtiene el usuario autenticado a partir del JWT",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Usuario autenticado ({ user })"
+          },
+          "401": {
+            "description": "No autorizado o el usuario ya no existe"
+          }
+        }
+      }
+    },
+    "/auth/google": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Inicia sesión o registra con Google (ID token de Google Identity Services)",
+        "description": "El cliente obtiene el credential con el botón de Google y lo manda aquí. La API lo verifica contra GOOGLE_CLIENT_ID. Si existe una cuenta local con el mismo correo, se vincula; si no existe, se crea una cuenta de Google ya activa.\n",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "credential"
+                ],
+                "properties": {
+                  "credential": {
+                    "type": "string",
+                    "description": "ID token (JWT) que regresa Google"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Sesión iniciada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Falta el credential"
+          },
+          "401": {
+            "description": "Token de Google inválido, expirado o correo sin verificar"
+          },
+          "503": {
+            "description": "GOOGLE_CLIENT_ID no configurado en el servidor"
+          }
+        }
+      }
+    },
+    "/auth/logout": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Cierra la sesión del usuario",
+        "responses": {
+          "200": {
+            "description": "Sesión cerrada"
+          }
+        }
+      }
+    }
+  },
+  "tags": []
+}

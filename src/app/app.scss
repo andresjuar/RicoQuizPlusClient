@@ -1,0 +1,11 @@
+
+.server-banner {
+  position: fixed;
+  inset: 0 0 auto;
+  z-index: 1000;
+  padding: 10px 16px;
+  text-align: center;
+  font-weight: 600;
+  color: var(--text-on-light);
+  background: var(--accent);
+}

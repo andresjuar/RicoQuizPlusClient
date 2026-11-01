@@ -1,6 +1,7 @@
-import { Component, signal } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { ToastContainer } from './shared/components/toast-container/toast-container';
+import { AuthService } from './shared/services/auth.service';
 
 
 @Component({
@@ -11,4 +12,5 @@ import { ToastContainer } from './shared/components/toast-container/toast-contai
 })
 export class App {
   protected readonly title = signal('RicoQuizPlusClient');
+  protected readonly auth = inject(AuthService);
 }
