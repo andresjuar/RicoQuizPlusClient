@@ -1,0 +1,16 @@
+:host { display: contents; }
+
+.vs {
+  display: grid;
+  gap: var(--sp-3);
+
+  &__skeleton { min-height: 160px; }
+
+  &__slow {
+    color: var(--text-muted);
+    font-size: var(--fs-sm);
+    text-align: center;
+  }
+}
+
+.vs__error h2 { color: var(--danger); }

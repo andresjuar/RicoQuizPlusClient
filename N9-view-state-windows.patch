@@ -1,0 +1,339 @@
+diff --git a/src/app/pages/dashboard/dashboard.html b/src/app/pages/dashboard/dashboard.html
+index 00f6bd6..11041a7 100644
+--- a/src/app/pages/dashboard/dashboard.html
++++ b/src/app/pages/dashboard/dashboard.html
+@@ -26,24 +26,25 @@
+       <a class="link" routerLink="/history">Ver historial →</a>
+     </header>
+ 
+-    @if (history(); as matches) {
+-      @if (matches.length) {
+-        <ul class="list">
+-          @for (match of matches.slice(0, 3); track match.matchId) {
+-            <li><app-match-row [match]="match" /></li>
+-          }
+-        </ul>
+-      } @else {
+-        <div class="empty-state">
+-          <span class="empty-state__icon" aria-hidden="true">🎮</span>
+-          <h2>Aún no has jugado partidas</h2>
+-          <p>Únete con un código o crea tu propia sala.</p>
+-        </div>
+-      }
+-    } @else {
+-      <ul class="list">
++    <app-view-state
++      #historyState
++      [resource]="history"
++      emptyIcon="🎮"
++      emptyTitle="Aún no has jugado partidas"
++      emptyText="Únete con un código o crea tu propia sala."
++      errorTitle="No se pudo cargar tu historial"
++    >
++      <ul skeleton class="list">
+         @for (i of [1, 2, 3]; track i) { <li class="skeleton skeleton--row"></li> }
+       </ul>
++    </app-view-state>
++
++    @if (historyState.isReady()) {
++      <ul class="list">
++        @for (match of history.value()!.slice(0, 3); track match.matchId) {
++          <li><app-match-row [match]="match" /></li>
++        }
++      </ul>
+     }
+   </section>
+ 
+@@ -53,18 +54,23 @@
+       <a class="link" routerLink="/quizzes/mine">Ver todos →</a>
+     </header>
+ 
+-    <div class="grid-cards">
+-      @if (myQuizzes(); as quizzes) {
+-        @for (quiz of quizzes.data; track quiz._id) {
++    <!-- Aquí "vacío" no aplica: sin quizzes se muestra solo la tarjeta de crear -->
++    <app-view-state #quizzesState [resource]="myQuizzes" [emptyWhen]="null" errorTitle="No se pudieron cargar tus quizzes">
++      <div skeleton class="grid-cards">
++        @for (i of [1, 2, 3]; track i) { <div class="skeleton"></div> }
++      </div>
++    </app-view-state>
++
++    @if (quizzesState.isReady()) {
++      <div class="grid-cards">
++        @for (quiz of myQuizzes.value()!.data; track quiz._id) {
+           <app-quiz-card [quiz]="quiz" actionLabel="Jugar" (action)="playQuiz($event)" />
+         }
+         <a class="new-tile" routerLink="/quizzes/new">
+           <span aria-hidden="true">+</span>
+           Crear nuevo quiz
+         </a>
+-      } @else {
+-        @for (i of [1, 2, 3]; track i) { <div class="skeleton"></div> }
+-      }
+-    </div>
++      </div>
++    }
+   </section>
+-</div>
+\ No newline at end of file
++</div>
+\ No newline at end of file
+diff --git a/src/app/pages/dashboard/dashboard.ts b/src/app/pages/dashboard/dashboard.ts
+index 1d9f139..aa0bd38 100644
+--- a/src/app/pages/dashboard/dashboard.ts
++++ b/src/app/pages/dashboard/dashboard.ts
+@@ -1,5 +1,5 @@
+ import { Component, computed, inject } from '@angular/core';
+-import { toSignal } from '@angular/core/rxjs-interop';
++import { rxResource } from '@angular/core/rxjs-interop';
+ import { DecimalPipe } from '@angular/common';
+ import { Router, RouterLink } from '@angular/router';
+ import { AuthService } from '../../shared/services/auth.service';
+@@ -7,10 +7,11 @@ import { QuizService } from '../../shared/services/quiz.service';
+ import { HistoryService } from '../../shared/services/history.service';
+ import { QuizCard } from '../../shared/components/quiz-card/quiz-card';
+ import { MatchRow } from '../../shared/components/match-row/match-row';
++import { ViewState } from '../../shared/components/view-state/view-state';
+ import { QuizSummary } from '../../shared/models/quiz.model';
+ 
+ @Component({
+-  imports: [RouterLink, DecimalPipe, QuizCard, MatchRow],
++  imports: [RouterLink, DecimalPipe, QuizCard, MatchRow, ViewState],
+   selector: 'app-dashboard',
+   templateUrl: './dashboard.html',
+   styleUrl: './dashboard.scss',
+@@ -21,9 +22,10 @@ export class Dashboard {
+   private readonly historyService = inject(HistoryService);
+   private readonly router = inject(Router);
+ 
++  // rxResource da isLoading(), error(), value() y reload() para <app-view-state>
+   // Página de 3 para las tarjetas; page.total da el número real de quizzes
+-  protected readonly myQuizzes = toSignal(this.quizService.getMine({ limit: 3 }));
+-  protected readonly history = toSignal(this.historyService.getMine());
++  protected readonly myQuizzes = rxResource({ stream: () => this.quizService.getMine({ limit: 3 }) });
++  protected readonly history = rxResource({ stream: () => this.historyService.getMine() });
+ 
+   protected readonly greeting = (() => {
+     const hour = new Date().getHours();
+@@ -31,9 +33,11 @@ export class Dashboard {
+   })();
+ 
+   protected readonly stats = computed(() => {
+-    const matches = this.history() ?? [];
++    // value() lanza si el resource está en error: por eso se pregunta hasValue() primero
++    const matches = this.history.hasValue() ? this.history.value() : [];
++    const quizzes = this.myQuizzes.hasValue() ? this.myQuizzes.value().total : 0;
+     return [
+-      { icon: '📝', label: 'Quizzes creados', value: this.myQuizzes()?.total ?? 0 },
++      { icon: '📝', label: 'Quizzes creados', value: quizzes },
+       { icon: '🎮', label: 'Partidas jugadas', value: matches.length },
+       { icon: '🏆', label: 'Victorias', value: matches.filter(m => m.rank === 1).length },
+       { icon: '⚡', label: 'Mejor puntuación', value: matches.length ? Math.max(...matches.map(m => m.score)) : 0 },
+@@ -43,4 +47,4 @@ export class Dashboard {
+   protected playQuiz(quiz: QuizSummary): void {
+     this.router.navigate(['/room/new'], { queryParams: { quiz: quiz._id } });
+   }
+-}
+\ No newline at end of file
++}
+\ No newline at end of file
+diff --git a/src/app/shared/components/view-state/view-state.html b/src/app/shared/components/view-state/view-state.html
+new file mode 100644
+index 0000000..3792658
+--- /dev/null
++++ b/src/app/shared/components/view-state/view-state.html
+@@ -0,0 +1,29 @@
++@switch (status()) {
++  @case ('loading') {
++    <div class="vs" aria-busy="true" aria-live="polite">
++      <!-- Skeleton propio de la página; si no manda uno, se usa este -->
++      <ng-content select="[skeleton]">
++        <div class="skeleton vs__skeleton"></div>
++      </ng-content>
++      @if (slow()) {
++        <p class="vs__slow">Despertando el servidor… la primera carga puede tardar hasta un minuto.</p>
++      }
++    </div>
++  }
++  @case ('error') {
++    <div class="empty-state vs__error" role="alert">
++      <span class="empty-state__icon" aria-hidden="true">⚠️</span>
++      <h2>{{ errorTitle() }}</h2>
++      <p>{{ errorMessage() }}</p>
++      <button type="button" class="btn btn--ghost" (click)="retry()">↻ Reintentar</button>
++    </div>
++  }
++  @case ('empty') {
++    <div class="empty-state">
++      <span class="empty-state__icon" aria-hidden="true">{{ emptyIcon() }}</span>
++      <h2>{{ emptyTitle() }}</h2>
++      @if (emptyText()) { <p>{{ emptyText() }}</p> }
++      <ng-content select="[empty-action]" />
++    </div>
++  }
++}
+diff --git a/src/app/shared/components/view-state/view-state.scss b/src/app/shared/components/view-state/view-state.scss
+new file mode 100644
+index 0000000..694eaaa
+--- /dev/null
++++ b/src/app/shared/components/view-state/view-state.scss
+@@ -0,0 +1,16 @@
++:host { display: contents; }
++
++.vs {
++  display: grid;
++  gap: var(--sp-3);
++
++  &__skeleton { min-height: 160px; }
++
++  &__slow {
++    color: var(--text-muted);
++    font-size: var(--fs-sm);
++    text-align: center;
++  }
++}
++
++.vs__error h2 { color: var(--danger); }
+diff --git a/src/app/shared/components/view-state/view-state.spec.ts b/src/app/shared/components/view-state/view-state.spec.ts
+new file mode 100644
+index 0000000..84574d5
+--- /dev/null
++++ b/src/app/shared/components/view-state/view-state.spec.ts
+@@ -0,0 +1,54 @@
++import { Component, signal } from '@angular/core';
++import { rxResource } from '@angular/core/rxjs-interop';
++import { TestBed } from '@angular/core/testing';
++import { NEVER, Observable, of, throwError } from 'rxjs';
++import { ApiError } from '../../models/api.model';
++import { ViewState } from './view-state';
++
++@Component({
++  imports: [ViewState],
++  template: `
++    <app-view-state #vs [resource]="items" emptyTitle="Sin quizzes" />
++    @if (vs.isReady()) {
++      <p class="ready">{{ items.value()!.length }} elementos</p>
++    }
++  `,
++})
++class Host {
++  readonly source = signal<Observable<string[]>>(NEVER);
++  readonly items = rxResource({ stream: () => this.source() });
++}
++
++async function render(source: Observable<string[]>) {
++  const fixture = TestBed.createComponent(Host);
++  fixture.componentInstance.source.set(source);
++  await fixture.whenStable();
++  fixture.detectChanges();
++  return fixture.nativeElement as HTMLElement;
++}
++
++describe('ViewState', () => {
++  it('muestra el skeleton mientras carga', () => {
++    // NEVER no emite: el resource se queda cargando (no se espera whenStable)
++    const fixture = TestBed.createComponent(Host);
++    fixture.detectChanges();
++    expect((fixture.nativeElement as HTMLElement).querySelector('[aria-busy="true"]')).not.toBeNull();
++  });
++
++  it('muestra el estado vacío cuando la lista no trae elementos', async () => {
++    const el = await render(of([]));
++    expect(el.textContent).toContain('Sin quizzes');
++    expect(el.querySelector('.ready')).toBeNull();
++  });
++
++  it('muestra el mensaje del ApiError y el botón de reintentar', async () => {
++    const el = await render(throwError(() => new ApiError('Quiz no encontrado', 404)));
++    expect(el.textContent).toContain('Quiz no encontrado');
++    expect(el.querySelector('button')?.textContent).toContain('Reintentar');
++  });
++
++  it('deja que la página pinte el contenido cuando hay datos', async () => {
++    const el = await render(of(['a', 'b']));
++    expect(el.querySelector('.ready')?.textContent).toContain('2 elementos');
++  });
++});
+diff --git a/src/app/shared/components/view-state/view-state.ts b/src/app/shared/components/view-state/view-state.ts
+new file mode 100644
+index 0000000..b71a89f
+--- /dev/null
++++ b/src/app/shared/components/view-state/view-state.ts
+@@ -0,0 +1,77 @@
++import { Component, Resource, computed, effect, input, signal } from '@angular/core';
++
++export type ViewStatus = 'loading' | 'error' | 'empty' | 'ready';
++
++/** Si la carga pasa de esto, se avisa que el servidor puede estar despertando (Render free) */
++const SLOW_MS = 5000;
++
++/** Lo único que este componente necesita de un resource: leer su estado y poder recargarlo */
++type ReloadableResource = Resource<unknown> & { reload(): boolean };
++
++/** Vacío por defecto: arreglo sin elementos o Page<T> con data vacío */
++function defaultIsEmpty(value: unknown): boolean {
++  if (Array.isArray(value)) return value.length === 0;
++  if (value && typeof value === 'object' && 'data' in value && Array.isArray(value.data)) {
++    return value.data.length === 0;
++  }
++  return value === null || value === undefined;
++}
++
++/**
++ * Pinta los estados de una vista que consume la API: carga, error (con reintentar) y vacío.
++ * El contenido "ready" lo pinta la página, preguntando a este componente:
++ *
++ *   <app-view-state #vs [resource]="quizzes" emptyTitle="..." />
++ *   @if (vs.isReady()) { ...lista con quizzes.value()... }
++ *
++ * Ojo: resource.value() LANZA si el resource está en error; por eso la página solo lo lee
++ * dentro de @if (vs.isReady()) y este componente decide qué es "vacío".
++ */
++@Component({
++  selector: 'app-view-state',
++  templateUrl: './view-state.html',
++  styleUrl: './view-state.scss',
++})
++export class ViewState {
++  /** Un rxResource / resource / httpResource de la página */
++  readonly resource = input.required<ReloadableResource>();
++  /** Cuándo el valor cuenta como vacío. null = nunca (la página pinta su propio vacío) */
++  readonly emptyWhen = input<((value: never) => boolean) | null>(defaultIsEmpty);
++
++  readonly emptyIcon = input('📭');
++  readonly emptyTitle = input('No hay nada por aquí');
++  readonly emptyText = input('');
++  readonly errorTitle = input('No se pudo cargar');
++
++  readonly status = computed<ViewStatus>(() => {
++    const res = this.resource();
++    if (res.error()) return 'error';
++    if (!res.hasValue()) return 'loading';
++    const emptyWhen = this.emptyWhen() as ((value: unknown) => boolean) | null;
++    return emptyWhen?.(res.value()) ? 'empty' : 'ready';
++  });
++
++  readonly isReady = computed(() => this.status() === 'ready');
++
++  /** El ApiError del interceptor ya trae el mensaje para el usuario */
++  protected readonly errorMessage = computed(() => {
++    const err = this.resource().error();
++    return err instanceof Error ? err.message : 'Ocurrió un error inesperado.';
++  });
++
++  protected readonly slow = signal(false);
++
++  constructor() {
++    // Cada vez que entra a "loading" arranca un contador; si sale antes, se cancela
++    effect(onCleanup => {
++      this.slow.set(false);
++      if (this.status() !== 'loading') return;
++      const timer = setTimeout(() => this.slow.set(true), SLOW_MS);
++      onCleanup(() => clearTimeout(timer));
++    });
++  }
++
++  protected retry(): void {
++    this.resource().reload();
++  }
++}
