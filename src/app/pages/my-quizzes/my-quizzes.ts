@@ -1,11 +1,12 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { map } from 'rxjs';
 import { Router, RouterLink } from '@angular/router';
 import { QuizService } from '../../shared/services/quiz.service';
 import { ConfirmService } from '../../shared/services/confirm.service';
 import { ToastService } from '../../shared/services/toast.service';
 import { QuizCard } from '../../shared/components/quiz-card/quiz-card';
-import { Quiz } from '../../shared/models/quiz.model';
+import { QuizSummary } from '../../shared/models/quiz.model';
 
 type Filter = 'all' | 'public' | 'private';
 
@@ -21,7 +22,8 @@ export class MyQuizzes {
   private readonly toast = inject(ToastService);
   private readonly router = inject(Router);
 
-  private readonly quizzes = toSignal(this.quizService.getMine());
+  // Temporal (N3): primera página; paginación y eliminar de verdad llegan con N5
+  private readonly quizzes = toSignal(this.quizService.getMine({ limit: 50 }).pipe(map(page => page.data)));
   protected readonly loading = computed(() => this.quizzes() === undefined);
 
   protected readonly filter = signal<Filter>('all');
@@ -42,20 +44,20 @@ export class MyQuizzes {
     return (this.quizzes() ?? []).filter(q => f === 'all' || (f === 'public') === q.isPublic);
   });
 
-  protected play(quiz: Quiz): void {
+  protected play(quiz: QuizSummary): void {
     this.router.navigate(['/room/new'], { queryParams: { quiz: quiz._id } });
   }
 
-  protected edit(quiz: Quiz): void {
+  protected edit(quiz: QuizSummary): void {
     this.router.navigate(['/quizzes', quiz._id, 'edit']);
   }
 
   /** Solo muestra la confirmación y la notificación; el registro no se elimina */
-  protected remove(quiz: Quiz): void {
+  protected remove(quiz: QuizSummary): void {
     this.confirm
       .confirm({
         title: '¿Eliminar este quiz?',
-        message: `Se eliminará «${quiz.title}» con sus ${quiz.questions.length} preguntas. Esta acción no se puede deshacer.`,
+        message: `Se eliminará «${quiz.title}» con sus ${quiz.questionCount} preguntas. Esta acción no se puede deshacer.`,
         confirmText: 'Eliminar',
         variant: 'danger',
       })

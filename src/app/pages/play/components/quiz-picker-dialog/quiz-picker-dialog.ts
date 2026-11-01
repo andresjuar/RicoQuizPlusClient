@@ -3,7 +3,7 @@ import { DIALOG_DATA, DialogRef } from '@angular/cdk/dialog';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { forkJoin, map } from 'rxjs';
-import { Quiz } from '../../../../shared/models/quiz.model';
+import { QuizSummary } from '../../../../shared/models/quiz.model';
 import { QuizService } from '../../../../shared/services/quiz.service';
 
 export interface QuizPickerData {
@@ -23,14 +23,14 @@ const normalize = (s: string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, 
 export class QuizPickerDialog {
   private readonly quizService = inject(QuizService);
   private readonly data = inject<QuizPickerData>(DIALOG_DATA);
-  protected readonly ref = inject<DialogRef<Quiz>>(DialogRef);
+  protected readonly ref = inject<DialogRef<QuizSummary>>(DialogRef);
 
   protected readonly currentId = this.data.currentId;
 
   // Mis quizzes + públicos, sin repetir (undefined mientras carga)
   private readonly loaded = toSignal(
-    forkJoin([this.quizService.getMine(), this.quizService.getPublic()]).pipe(
-      map(([mine, pub]) => [...mine, ...pub.filter(p => !mine.some(m => m._id === p._id))]),
+    forkJoin([this.quizService.getMine({ limit: 50 }), this.quizService.getPublic({ limit: 50 })]).pipe(
+      map(([{ data: mine }, { data: pub }]) => [...mine, ...pub.filter(p => !mine.some(m => m._id === p._id))]),
     ),
   );
   protected readonly loading = computed(() => this.loaded() === undefined);
@@ -44,7 +44,7 @@ export class QuizPickerDialog {
     return all.filter(z => normalize([z.title, z.topic ?? '', z.description ?? '', ...z.tags].join(' ')).includes(q));
   });
 
-  protected readonly picked = signal<Quiz | null>(null);
+  protected readonly picked = signal<QuizSummary | null>(null);
   protected readonly canConfirm = computed(() => {
     const p = this.picked();
     return !!p && p._id !== this.currentId;
@@ -54,7 +54,7 @@ export class QuizPickerDialog {
     return `${n} ${n === 1 ? 'pregunta' : 'preguntas'}`;
   }
 
-  protected pick(q: Quiz): void {
+  protected pick(q: QuizSummary): void {
     this.picked.set(q);
   }
 

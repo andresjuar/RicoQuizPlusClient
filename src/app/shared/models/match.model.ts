@@ -9,7 +9,7 @@ export interface MatchPlayer {
 
 export interface Match {
   _id: string;
-  quiz?: string;
+  quiz?: string | { _id: string; title: string };
   host: string;
   roomCode: string;
   status: MatchStatus;
@@ -17,6 +17,12 @@ export interface Match {
   finishedAt?: string;
   players: MatchPlayer[];
   createdAt: string;
+}
+
+/** GET /matches/rooms/:code/exists */
+export interface RoomStatus {
+  exists: boolean;
+  inProgress: boolean;
 }
 
 /** Fila que muestra la vista de historial */

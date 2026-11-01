@@ -1,6 +1,6 @@
 import { Component, computed, inject, input, output } from '@angular/core';
 import { PlayerRole, PublicPlayer } from '../../../../shared/models/game.model';
-import { Quiz } from '../../../../shared/models/quiz.model';
+import { QuizSummary } from '../../../../shared/models/quiz.model';
 import { CopyToClipboard } from '../../../../shared/directives/copy-to-clipboard';
 import { ToastService } from '../../../../shared/services/toast.service';
 import { PlayerChip } from '../player-chip/player-chip';
@@ -19,7 +19,7 @@ export class Lobby {
   readonly players = input.required<PublicPlayer[]>();
   readonly hostSocketId = input.required<string>();
   /** Quiz de la sala; solo se muestra al host */
-  readonly quiz = input<Quiz | null>(null);
+  readonly quiz = input<QuizSummary | null>(null);
 
   readonly start = output<void>();
   /** El host quiere elegir otro quiz (lo abre el shell) */
@@ -28,7 +28,7 @@ export class Lobby {
   protected readonly connectedCount = computed(() => this.players().filter(p => p.isConnected).length);
 
   protected readonly quizMeta = computed(() => {
-    const n = this.quiz()?.questions.length ?? 0;
+    const n = this.quiz()?.questionCount ?? 0;
     return `${n} ${n === 1 ? 'pregunta' : 'preguntas'}`;
   });
 

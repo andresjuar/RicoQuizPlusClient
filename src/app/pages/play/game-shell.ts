@@ -3,9 +3,9 @@ import { Dialog } from '@angular/cdk/dialog';
 import { Router } from '@angular/router';
 import { environment } from '../../../environments/environment';
 import { GameLeaveState } from '../../shared/guards/leave-game.guard';
-import { MOCK_LEADERBOARD, MOCK_PLAYERS, MOCK_QUESTION, MOCK_QUIZZES } from '../../shared/mocks/mock-data';
+import { MOCK_LEADERBOARD, MOCK_PLAYERS, MOCK_QUESTION, MOCK_GAME_QUIZ } from '../../shared/mocks/mock-data';
 import { AnswerCount, AnswerRevealed, GamePhase, PlayerRole } from '../../shared/models/game.model';
-import { Quiz } from '../../shared/models/quiz.model';
+import { QuizSummary } from '../../shared/models/quiz.model';
 import { AuthService } from '../../shared/services/auth.service';
 import { ToastService } from '../../shared/services/toast.service';
 import { DevPanel } from './components/dev-panel/dev-panel';
@@ -53,7 +53,7 @@ export class GameShell implements GameLeaveState {
   protected readonly role = signal<PlayerRole>(this.auth.isAuthenticated() ? 'host' : 'player');
 
   // Quiz de la sala: llega desde /room/new por el state de la navegación (sobrevive a recargas); si no, uno de prueba
-  protected readonly quiz = signal<Quiz>((history.state?.quiz as Quiz | undefined) ?? MOCK_QUIZZES[0]);
+  protected readonly quiz = signal<QuizSummary>((history.state?.quiz as QuizSummary | undefined) ?? MOCK_GAME_QUIZ);
 
   // Datos mock
   protected readonly players = MOCK_PLAYERS;
@@ -142,7 +142,7 @@ export class GameShell implements GameLeaveState {
   protected openQuizPicker(): void {
     const data: QuizPickerData = { currentId: this.quiz()._id };
     this.dialog
-      .open<Quiz, QuizPickerData>(QuizPickerDialog, {
+      .open<QuizSummary, QuizPickerData>(QuizPickerDialog, {
         data,
         width: '560px',
         maxWidth: 'calc(100vw - 32px)',

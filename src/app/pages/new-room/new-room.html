@@ -92,7 +92,7 @@
     <div class="bar__info">
       <span class="bar__label">Quiz seleccionado</span>
       @if (selected(); as s) {
-        <strong class="bar__title">{{ s.title }} <span class="bar__meta">· {{ plural(s.questions.length) }}</span></strong>
+        <strong class="bar__title">{{ s.title }} <span class="bar__meta">· {{ plural(s.questionCount) }}</span></strong>
       } @else {
         <span class="bar__empty">Aún no eliges un quiz</span>
       }

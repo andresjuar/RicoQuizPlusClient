@@ -1,47 +1,58 @@
-import { Injectable } from '@angular/core';
-import { Observable, delay, map, of, timer } from 'rxjs';
-import { Question, Quiz, QuizDraft } from '../models/quiz.model';
-import { MOCK_QUIZZES, MOCK_USER } from '../mocks/mock-data';
+import { Injectable, inject } from '@angular/core';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { Observable, map } from 'rxjs';
+import { environment } from '../../../environments/environment';
+import { Page } from '../models/api.model';
+import { Question, Quiz, QuizDraft, QuizQuery, QuizSummary } from '../models/quiz.model';
 
 @Injectable({ providedIn: 'root' })
 export class QuizService {
-  // TODO integración: GET /quizzes?search=
-  getPublic(search = ''): Observable<Quiz[]> {
-    const term = search.toLowerCase();
-    return of(
-      MOCK_QUIZZES.filter(q =>
-        q.isPublic &&
-        (q.title.toLowerCase().includes(term) || q.tags.some(t => t.includes(term))),
-      ),
-    ).pipe(delay(300));
+  private readonly http = inject(HttpClient);
+  private readonly url = `${environment.apiUrl}/quizzes`;
+
+  /** GET /quizzes — quizzes públicos (Explorar, landing) */
+  getPublic(query: QuizQuery = {}): Observable<Page<QuizSummary>> {
+    return this.http.get<Page<QuizSummary>>(this.url, { params: toParams(query) });
   }
 
-  // TODO integración: GET /quizzes?owner=me
-  getMine(): Observable<Quiz[]> {
-    return of(MOCK_QUIZZES.filter(q => q.owner === MOCK_USER._id)).pipe(delay(300));
+  /** GET /quizzes/mine — quizzes del usuario, públicos y privados (requiere token) */
+  getMine(query: QuizQuery = {}): Observable<Page<QuizSummary>> {
+    return this.http.get<Page<QuizSummary>>(`${this.url}/mine`, { params: toParams(query) });
   }
 
-  // TODO integración: GET /quizzes/:id
-  getById(id: string): Observable<Quiz | undefined> {
-    return of(MOCK_QUIZZES.find(q => q._id === id)).pipe(delay(200));
+  /** GET /quizzes/:id — quiz completo con preguntas */
+  getById(id: string): Observable<Quiz> {
+    return this.http.get<Quiz>(`${this.url}/${id}`);
   }
 
-    // TODO integración: POST /quizzes/generate { topic, numQuestions }
-  generate(topic: string, count: number): Observable<Question[]> {
-    return timer(1500).pipe(
-      map(() =>
-        Array.from({ length: count }, (_, i) => ({
-          question: `Pregunta ${i + 1} generada sobre «${topic}»`,
-          options: ['Respuesta A', 'Respuesta B', 'Respuesta C', 'Respuesta D'],
-          correctIndex: i % 4,
-          timeLimitSeconds: 20,
-        })),
-      ),
-    );
+  /** POST /quizzes o PUT /quizzes/:id según haya id */
+  save(draft: QuizDraft, id?: string): Observable<Quiz> {
+    return id ? this.http.put<Quiz>(`${this.url}/${id}`, draft) : this.http.post<Quiz>(this.url, draft);
   }
 
-  // TODO integración: POST /quizzes  |  PUT /quizzes/:id
-  save(draft: QuizDraft, id?: string): Observable<void> {
-    return timer(800).pipe(map(() => undefined));
+  /** DELETE /quizzes/:id */
+  delete(id: string): Observable<void> {
+    return this.http.delete(`${this.url}/${id}`).pipe(map(() => undefined));
   }
+
+  /** POST /quizzes/generate-questions — preguntas con IA sin guardar (formulario de quiz) */
+  generateQuestions(topic: string, numQuestions: number): Observable<Question[]> {
+    return this.http
+      .post<{ questions: Question[] }>(`${this.url}/generate-questions`, { topic, numQuestions })
+      .pipe(map(res => res.questions));
+  }
+
+  /** POST /quizzes/generate — genera Y guarda un quiz privado (Nueva partida) */
+  generate(topic: string, numQuestions: number): Observable<Quiz> {
+    return this.http.post<Quiz>(`${this.url}/generate`, { topic, numQuestions });
+  }
+}
+
+/** Convierte el objeto de filtros en query params, sin mandar vacíos */
+function toParams(query: QuizQuery): HttpParams {
+  let params = new HttpParams();
+  for (const [key, value] of Object.entries(query)) {
+    if (value !== undefined && value !== null && value !== '') params = params.set(key, String(value));
+  }
+  return params;
 }

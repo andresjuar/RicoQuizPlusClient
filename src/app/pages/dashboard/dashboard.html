@@ -55,7 +55,7 @@
 
     <div class="grid-cards">
       @if (myQuizzes(); as quizzes) {
-        @for (quiz of quizzes.slice(0, 3); track quiz._id) {
+        @for (quiz of quizzes.data; track quiz._id) {
           <app-quiz-card [quiz]="quiz" actionLabel="Jugar" (action)="playQuiz($event)" />
         }
         <a class="new-tile" routerLink="/quizzes/new">

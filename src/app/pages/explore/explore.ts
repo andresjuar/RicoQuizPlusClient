@@ -1,10 +1,11 @@
 import { Component, computed, inject, input, linkedSignal, signal } from '@angular/core';
+import { map } from 'rxjs';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { QuizService } from '../../shared/services/quiz.service';
 import { QuizCard } from '../../shared/components/quiz-card/quiz-card';
 import { CATEGORIES } from '../../shared/models/categories';
-import { Quiz } from '../../shared/models/quiz.model';
+import { QuizSummary } from '../../shared/models/quiz.model';
 
 const normalize = (text: string) =>
   text.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
@@ -28,7 +29,8 @@ export class Explore {
   protected readonly search = signal('');
   protected readonly selected = linkedSignal(() => this.category() ?? 'all');
 
-  private readonly quizzes = toSignal(this.quizService.getPublic());
+  // Temporal (N3): primera página; la búsqueda y paginación en el servidor llegan con N4
+  private readonly quizzes = toSignal(this.quizService.getPublic({ limit: 50 }).pipe(map(page => page.data)));
   protected readonly loading = computed(() => this.quizzes() === undefined);
 
   protected readonly filtered = computed(() => {
@@ -47,7 +49,7 @@ export class Explore {
     this.selected.set('all');
   }
 
-  protected playQuiz(quiz: Quiz): void {
+  protected playQuiz(quiz: QuizSummary): void {
     this.router.navigate(['/room/new'], { queryParams: { quiz: quiz._id } });
   }
 }

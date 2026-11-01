@@ -17,7 +17,7 @@
               <span class="row__main">
                 <strong class="row__title">{{ q.title }}</strong>
                 <span class="row__meta">
-                  {{ plural(q.questions.length) }}@if (q.topic) { · {{ q.topic }} }
+                  {{ plural(q.questionCount) }}@if (q.topic) { · {{ q.topic }} }
                 </span>
               </span>
               @if (q._id === currentId) {
