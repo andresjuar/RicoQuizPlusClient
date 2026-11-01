@@ -74,10 +74,9 @@ export class QuizForm implements OnInit, HasUnsavedChanges {
         this.loading.set(false)
         this.fill(quiz)
       },
-      // 404 (no existe o es privado de otro usuario): regresa a la lista
+      // 404 (no existe o es privado de otro usuario): el interceptor ya mostró el toast
       error: () => {
         this.loading.set(false)
-        this.toast.error('No encontramos ese quiz.')
         this.router.navigate(['/quizzes/mine'])
       }
     })
