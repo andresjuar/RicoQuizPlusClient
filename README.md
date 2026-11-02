@@ -93,11 +93,15 @@ src/app/
 
 ## Contrato de API
 
+## Contrato de API
+
 Fuente de datos: API propia **RicoQuiz+** (Express + MongoDB), desplegada en Render.
 
-- Especificación completa (OpenAPI 3.0): [`docs/openapi.json`](./docs/openapi.json)
-- Documentación interactiva: https://proyecto-final-servidor-k6wl.onrender.com/api-docs
-- Para verla como página: abrir https://editor.swagger.io y arrastrar `docs/openapi.json`.
+- **[Contrato de API](./docs/api-contract.md)**: endpoints que usa el cliente, modelos de datos y respuestas de error.
+- **[Especificación OpenAPI 3.0](./docs/openapi.json)**: todos los endpoints de la API. Se puede abrir en https://editor.swagger.io.
+- **Documentación interactiva:** https://proyecto-final-servidor-k6wl.onrender.com/api-docs
+
+Todas las respuestas de error tienen la forma `{ "message": string, "errores"?: string[] }` y se manejan en un solo lugar: `src/app/shared/interceptors/error.interceptor.ts`.
 
 ### Endpoints que usa el cliente
 
