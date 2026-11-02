@@ -58,15 +58,22 @@
       <a class="link" routerLink="/explore">Ver todos →</a>
     </header>
 
+  <app-view-state #popularState [resource]="popular"
+    emptyIcon="✨" emptyTitle="Todavía no hay quizzes públicos"
+    emptyText="Crea el primero y aparecerá aquí."
+    errorTitle="No se pudieron cargar los quizzes populares">
+    <div skeleton class="grid-cards">
+      @for (i of [1, 2, 3]; track i) { <div class="skeleton"></div> }
+    </div>
+  </app-view-state>
+
+  @if (popularState.isReady()) {
     <div class="grid-cards">
-      @if (popular(); as quizzes) {
-        @for (quiz of quizzes; track quiz._id) {
-          <app-quiz-card [quiz]="quiz" (action)="playQuiz($event)" />
-        }
-      } @else {
-        @for (i of [1, 2, 3]; track i) { <div class="skeleton"></div> }
+      @for (quiz of popular.value()!; track quiz._id) {
+        <app-quiz-card [quiz]="quiz" (action)="playQuiz($event)" />
       }
     </div>
+  }
   </section>
 
   <section id="como-jugar">

@@ -1,5 +1,5 @@
 import { Component, inject, signal } from '@angular/core'
-import { toSignal } from '@angular/core/rxjs-interop'
+import { rxResource } from '@angular/core/rxjs-interop'
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms'
 import { Router, RouterLink } from '@angular/router'
 import { map } from 'rxjs'
@@ -11,9 +11,10 @@ import { QuizCard } from '../../shared/components/quiz-card/quiz-card'
 import { CATEGORIES } from '../../shared/models/categories'
 import { QuizSummary } from '../../shared/models/quiz.model'
 import { GoogleButton } from '../../shared/components/google-button/google-button'
+import { ViewState } from '../../shared/components/view-state/view-state'
 
 @Component({
-  imports: [ReactiveFormsModule, RouterLink, QuizCard, GoogleButton],
+  imports: [ReactiveFormsModule, RouterLink, QuizCard, GoogleButton, ViewState],
   selector: 'app-landing',
   templateUrl: './landing.html',
   styleUrl: './landing.scss'
@@ -28,11 +29,13 @@ export class Landing {
 
   protected readonly categories = CATEGORIES
 
-  protected readonly popular = toSignal(
+// rxResource en lugar de toSignal: si la API falla o está dormida, <app-view-state> lo muestra
+protected readonly popular = rxResource({
+  stream: () =>
     this.quizService
       .getPublic({ limit: 20 })
       .pipe(map(page => [...page.data].sort((a, b) => b.timesPlayed - a.timesPlayed).slice(0, 3)))
-  )
+})
 
   protected readonly steps = [
     {
