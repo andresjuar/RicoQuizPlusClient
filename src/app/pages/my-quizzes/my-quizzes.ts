@@ -1,17 +1,21 @@
-import { Component, computed, inject, signal } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
-import { map } from 'rxjs';
+import { Component, inject, signal } from '@angular/core';
+import { rxResource } from '@angular/core/rxjs-interop';
 import { Router, RouterLink } from '@angular/router';
+import { filter, switchMap } from 'rxjs';
 import { QuizService } from '../../shared/services/quiz.service';
 import { ConfirmService } from '../../shared/services/confirm.service';
 import { ToastService } from '../../shared/services/toast.service';
 import { QuizCard } from '../../shared/components/quiz-card/quiz-card';
+import { ViewState } from '../../shared/components/view-state/view-state';
+import { Paginator } from '../../shared/components/paginator/paginator';
 import { QuizSummary } from '../../shared/models/quiz.model';
 
-type Filter = 'all' | 'public' | 'private';
+type Visibility = 'all' | 'public' | 'private';
+
+const PAGE_SIZE = 12;
 
 @Component({
-  imports: [RouterLink, QuizCard],
+  imports: [RouterLink, QuizCard, ViewState, Paginator],
   selector: 'app-my-quizzes',
   templateUrl: './my-quizzes.html',
   styleUrl: './my-quizzes.scss',
@@ -22,27 +26,24 @@ export class MyQuizzes {
   private readonly toast = inject(ToastService);
   private readonly router = inject(Router);
 
-  // Temporal (N3): primera página; paginación y eliminar de verdad llegan con N5
-  private readonly quizzes = toSignal(this.quizService.getMine({ limit: 50 }).pipe(map(page => page.data)));
-  protected readonly loading = computed(() => this.quizzes() === undefined);
-
-  protected readonly filter = signal<Filter>('all');
-  protected readonly filters: { id: Filter; label: string }[] = [
+  protected readonly filter = signal<Visibility>('all');
+  protected readonly page = signal(1);
+  protected readonly filters: { id: Visibility; label: string }[] = [
     { id: 'all', label: 'Todos' },
     { id: 'public', label: 'Públicos' },
     { id: 'private', label: 'Privados' },
   ];
 
-  protected readonly counts = computed(() => {
-    const list = this.quizzes() ?? [];
-    const pub = list.filter(q => q.isPublic).length;
-    return { all: list.length, public: pub, private: list.length - pub } satisfies Record<Filter, number>;
+  // El filtro y la página van a la API (visibility, page); al cambiar cualquiera se vuelve a pedir
+  protected readonly quizzes = rxResource({
+    params: () => ({ visibility: this.filter(), page: this.page(), limit: PAGE_SIZE }),
+    stream: ({ params }) => this.quizService.getMine(params),
   });
 
-  protected readonly visible = computed(() => {
-    const f = this.filter();
-    return (this.quizzes() ?? []).filter(q => f === 'all' || (f === 'public') === q.isPublic);
-  });
+  protected setFilter(id: Visibility): void {
+    this.filter.set(id);
+    this.page.set(1);
+  }
 
   protected play(quiz: QuizSummary): void {
     this.router.navigate(['/room/new'], { queryParams: { quiz: quiz._id } });
@@ -52,7 +53,6 @@ export class MyQuizzes {
     this.router.navigate(['/quizzes', quiz._id, 'edit']);
   }
 
-  /** Solo muestra la confirmación y la notificación; el registro no se elimina */
   protected remove(quiz: QuizSummary): void {
     this.confirm
       .confirm({
@@ -61,8 +61,20 @@ export class MyQuizzes {
         confirmText: 'Eliminar',
         variant: 'danger',
       })
-      .subscribe(ok => {
-        if (ok) this.toast.success(`«${quiz.title}» se eliminó correctamente.`);
+      .pipe(
+        filter(Boolean),
+        switchMap(() => this.quizService.delete(quiz._id)),
+      )
+      .subscribe({
+        next: () => {
+          this.toast.success(`«${quiz.title}» se eliminó correctamente.`);
+          // Si era el único de la página, retrocede una (eso ya vuelve a pedir); si no, recarga la actual
+          const wasLastOnPage = this.quizzes.hasValue() && this.quizzes.value().data.length === 1;
+          if (wasLastOnPage && this.page() > 1) this.page.update(p => p - 1);
+          else this.quizzes.reload();
+        },
+        // El mensaje de error ya lo mostró el interceptor
+        error: () => undefined,
       });
   }
 }

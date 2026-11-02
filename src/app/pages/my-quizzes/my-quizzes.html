@@ -10,33 +10,42 @@
   <div class="filters">
     @for (f of filters; track f.id) {
       <button type="button" class="chip" [class.is-active]="filter() === f.id"
-        [attr.aria-pressed]="filter() === f.id" (click)="filter.set(f.id)">
-        {{ f.label }} <span class="filters__count">{{ counts()[f.id] }}</span>
+        [attr.aria-pressed]="filter() === f.id" (click)="setFilter(f.id)">
+        {{ f.label }}
+        @if (filter() === f.id && quizzes.hasValue()) {
+          <span class="filters__count">{{ quizzes.value().total }}</span>
+        }
       </button>
     }
   </div>
 
-  @if (loading()) {
-    <div class="grid-cards">
+  <!-- Aquí "vacío" no aplica: la página pinta su propio mensaje según el filtro -->
+  <app-view-state #vs [resource]="quizzes" [emptyWhen]="null" errorTitle="No se pudieron cargar tus quizzes">
+    <div skeleton class="grid-cards">
       @for (i of [1, 2, 3]; track i) { <div class="skeleton"></div> }
     </div>
-  } @else if (visible().length) {
-    <div class="grid-cards">
-      @for (quiz of visible(); track quiz._id) {
-        <app-quiz-card [quiz]="quiz" actionLabel="Jugar" (action)="play($event)">
-          <div class="card-actions">
-            <button type="button" class="btn btn--ghost" (click)="edit(quiz)">✎ Editar</button>
-            <button type="button" class="btn btn--ghost card-actions__delete" (click)="remove(quiz)">🗑 Eliminar</button>
-          </div>
-        </app-quiz-card>
-      }
-    </div>
-  } @else {
-    <div class="empty-state">
-      <span class="empty-state__icon" aria-hidden="true">📝</span>
-      <h2>{{ filter() === 'all' ? 'Aún no tienes quizzes' : 'No hay quizzes en esta categoría' }}</h2>
-      <p>Crea uno desde cero o genéralo con IA a partir de un tema.</p>
-      <a class="btn btn--accent" routerLink="/quizzes/new">+ Crear mi primer quiz</a>
-    </div>
+  </app-view-state>
+
+  @if (vs.isReady()) {
+    @if (quizzes.value()!.data.length) {
+      <div class="grid-cards">
+        @for (quiz of quizzes.value()!.data; track quiz._id) {
+          <app-quiz-card [quiz]="quiz" actionLabel="Jugar" (action)="play($event)">
+            <div class="card-actions">
+              <button type="button" class="btn btn--ghost" (click)="edit(quiz)">✎ Editar</button>
+              <button type="button" class="btn btn--ghost card-actions__delete" (click)="remove(quiz)">🗑 Eliminar</button>
+            </div>
+          </app-quiz-card>
+        }
+      </div>
+      <app-paginator [page]="page()" [totalPages]="quizzes.value()!.totalPages ?? 1" (pageChange)="page.set($event)" />
+    } @else {
+      <div class="empty-state">
+        <span class="empty-state__icon" aria-hidden="true">📝</span>
+        <h2>{{ filter() === 'all' ? 'Aún no tienes quizzes' : 'No hay quizzes en esta categoría' }}</h2>
+        <p>Crea uno desde cero o genéralo con IA a partir de un tema.</p>
+        <a class="btn btn--accent" routerLink="/quizzes/new">+ Crear mi primer quiz</a>
+      </div>
+    }
   }
 </div>
