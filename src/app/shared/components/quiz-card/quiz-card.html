@@ -17,7 +17,7 @@
   </div>
 
   <div class="qc__body">
-    <h3 class="qc__title">{{ quiz().title }}</h3>
+    <h3 class="qc__title"><a [routerLink]="['/quizzes', quiz()._id]">{{ quiz().title }}</a></h3>
     <p class="qc__meta">⏱ {{ quiz().questionCount }} preguntas · {{ minutes() }} min</p>
     @if (quiz().description) { <p class="qc__desc">{{ quiz().description }}</p> }
   </div>

@@ -1,9 +1,10 @@
 import { Component, computed, input, output, signal } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { QuizSummary } from '../../models/quiz.model';
 import { categoryOf } from '../../models/categories';
 
 @Component({
-  imports: [],
+  imports: [RouterLink],
   selector: 'app-quiz-card',
   templateUrl: './quiz-card.html',
   styleUrl: './quiz-card.scss',

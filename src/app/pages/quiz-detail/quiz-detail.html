@@ -1,0 +1,65 @@
+<div class="container quiz-detail">
+  <a class="link back" routerLink="/explore">← Volver a explorar</a>
+
+  <app-view-state #vs [resource]="quiz" [emptyWhen]="null" errorTitle="No se pudo cargar el quiz">
+    <div skeleton class="skeleton skeleton--detail"></div>
+  </app-view-state>
+
+  @if (vs.isReady()) {
+    @let q = quiz.value()!;
+
+    <header class="hero card">
+      <div class="hero__cover" [style.--tone]="category().color">
+        @if (q.coverImageUrl) {
+          <img [src]="q.coverImageUrl" [alt]="q.title" />
+        } @else {
+          <span class="hero__emoji" aria-hidden="true">{{ category().emoji }}</span>
+        }
+      </div>
+
+      <div class="hero__body">
+        <p class="eyebrow">{{ category().label }}</p>
+        <h1 class="hero__title">{{ q.title }}</h1>
+        @if (q.description) { <p class="hero__desc">{{ q.description }}</p> }
+
+        <ul class="meta">
+          <li>⏱ {{ q.questions.length }} preguntas · {{ minutes() }} min</li>
+          <li>👤 {{ q.owner.displayName }}</li>
+          <li>▶ {{ q.timesPlayed }} partidas</li>
+          @if (q.generatedByAI) { <li>✦ Generado con IA</li> }
+          @if (!q.isPublic) { <li>🔒 Privado</li> }
+        </ul>
+
+        <div class="hero__actions">
+          <button type="button" class="btn btn--accent" (click)="play(q)">▶ Jugar</button>
+          @if (isOwner()) {
+            <button type="button" class="btn btn--ghost" (click)="edit(q)">✎ Editar</button>
+            <button type="button" class="btn btn--ghost danger" (click)="remove(q)">🗑 Eliminar</button>
+          }
+        </div>
+      </div>
+    </header>
+
+    <section class="questions">
+      <h2>Preguntas</h2>
+      <ol class="questions__list">
+        @for (question of q.questions; track $index) {
+          <li class="question card">
+            <h3 class="question__text">{{ question.question }}</h3>
+            <ul class="options">
+              @for (option of question.options; track $index) {
+                <li class="option" [class.is-correct]="isOwner() && $index === question.correctIndex">
+                  {{ option }}
+                  @if (isOwner() && $index === question.correctIndex) {
+                    <span class="option__mark" aria-label="Respuesta correcta">✓</span>
+                  }
+                </li>
+              }
+            </ul>
+            <p class="question__time">⏱ {{ question.timeLimitSeconds }} s</p>
+          </li>
+        }
+      </ol>
+    </section>
+  }
+</div>
