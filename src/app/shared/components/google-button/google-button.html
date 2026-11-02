@@ -1,0 +1,8 @@
+@if (enabled) {
+  <div #host class="gbtn"></div>
+  @if (failed()) {
+    <p class="gbtn__error" role="alert">No se pudo cargar el botón de Google. Revisa tu conexión o usa tu correo.</p>
+  }
+} @else {
+  <div #host hidden></div>
+}

@@ -4,11 +4,12 @@ import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../shared/services/auth.service';
 import { ToastService } from '../../shared/services/toast.service';
 import { AuthCard } from '../../shared/components/auth-card/auth-card';
+import { GoogleButton } from '../../shared/components/google-button/google-button';
 import { passwordsMatch } from '../../shared/validators/passwords-match.validator';
 import { ApiError } from '../../shared/models/api.model';
 
 @Component({
-  imports: [ReactiveFormsModule, RouterLink, AuthCard],
+  imports: [ReactiveFormsModule, RouterLink, AuthCard, GoogleButton],
   selector: 'app-register',
   templateUrl: './register.html',
   styleUrl: './register.scss',
@@ -83,7 +84,19 @@ export class Register {
     this.toast.info(`Reenviamos el enlace a ${this.sentTo()}.`);
   }
 
-  protected registerWithGoogle(): void {
-    this.toast.info('El registro con Google estará disponible pronto.');
+  /** Con Google no hay activación por correo: la API crea la cuenta (o la vincula) y regresa la sesión */
+  protected registerWithGoogle(credential: string): void {
+    this.loading.set(true);
+    this.serverError.set(null);
+    this.auth.loginWithGoogle(credential).subscribe({
+      next: user => {
+        this.toast.success(`¡Bienvenido, ${user.displayName}!`);
+        this.router.navigateByUrl('/dashboard');
+      },
+      error: (err: Error) => {
+        this.loading.set(false);
+        this.serverError.set(err.message);
+      },
+    });
   }
 }

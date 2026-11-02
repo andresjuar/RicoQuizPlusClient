@@ -17,10 +17,7 @@
     <!-- Solo para la demo: simula abrir el enlace del correo -->
     <a class="link demo-link" routerLink="/activate/demo-token">Simular enlace de activación →</a>
   } @else {
-    <button type="button" class="btn btn--light btn--block" (click)="registerWithGoogle()">
-      <span class="g-icon" aria-hidden="true">G</span>
-      Registrarse con Google
-    </button>
+    <app-google-button text="signup_with" (credential)="registerWithGoogle($event)" />
 
     <div class="divider">o con tu correo</div>
 
