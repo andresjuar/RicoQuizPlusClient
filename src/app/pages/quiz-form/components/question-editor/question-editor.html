@@ -30,12 +30,8 @@
         <button type="button" class="icon-btn icon-btn--danger q__remove-img"
           aria-label="Quitar imagen" (click)="removeImage()">✕</button>
       </div>
-    } @else {
-      <label class="q__add-img">
-        🖼️ Agregar imagen <small>· opcional</small>
-        <input type="file" accept="image/*" hidden (change)="onImageSelected($event)" />
-      </label>
     }
+    <!-- Subir imágenes queda para otra entrega: solo se muestran las que ya tenga la pregunta -->
   </div>
 
   <div class="field">
@@ -43,7 +39,8 @@
     <div class="opts">
       @for (opt of options.controls; track opt; let i = $index) {
         <div class="opt" [style.--answer]="'var(--answer-' + i + ')'"
-          [class.is-correct]="form().controls.correctIndex.value === i">
+          [class.is-correct]="form().controls.correctIndex.value === i"
+          [class.is-duplicate]="duplicateIndexes.includes(i)">
           <span class="opt__icon" aria-hidden="true">{{ icons[i] }}</span>
           <input class="opt__input" [formControl]="opt"
             [placeholder]="'Opción ' + (i + 1)" [attr.aria-label]="'Opción ' + (i + 1)" />
@@ -61,6 +58,10 @@
     }
     @if (optionsInvalid) {
       <span class="field__error">Completa todas las opciones.</span>
+    } @else if (duplicateIndexes.length) {
+      <span class="field__error">
+        Las opciones {{ duplicateIndexes.map(i => i + 1).join(', ') }} están repetidas.
+      </span>
     }
     @if (form().controls.correctIndex.touched && form().controls.correctIndex.invalid) {
       <span class="field__error">Marca cuál es la respuesta correcta.</span>
@@ -73,4 +74,4 @@
       @for (t of timeOptions; track t) { <option [ngValue]="t">{{ t }} segundos</option> }
     </select>
   </div>
-</article>
+</article>

@@ -1,5 +1,6 @@
 import { Component, input, output } from '@angular/core';
 import { FormArray, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { uniqueOptions } from '../../../../shared/validators/unique-options.validator';
 
 export const MIN_OPTIONS = 2;
 export const MAX_OPTIONS = 4;
@@ -32,7 +33,7 @@ export function createQuestionForm(q?: Partial<QuestionValue>): QuestionForm {
     }),
     imageUrl: new FormControl<string | null>(q?.imageUrl ?? null),
     options: new FormArray(options.map(o => optionControl(o)), {
-      validators: [Validators.minLength(MIN_OPTIONS)],
+      validators: [Validators.minLength(MIN_OPTIONS), uniqueOptions],
     }),
     correctIndex: new FormControl<number | null>(q?.correctIndex ?? null, Validators.required),
     timeLimitSeconds: new FormControl(q?.timeLimitSeconds ?? 20, {
@@ -71,6 +72,12 @@ export class QuestionEditor {
     return this.options.controls.some(c => c.touched && c.invalid);
   }
 
+  /** Posiciones repetidas (validador uniqueOptions); se muestran cuando ya tocó alguna opción */
+  protected get duplicateIndexes(): number[] {
+    const touched = this.options.controls.some(c => c.touched || c.dirty);
+    return touched ? (this.options.getError('duplicateOptions')?.indexes ?? []) : [];
+  }
+
   protected addOption(): void {
     if (this.options.length >= MAX_OPTIONS) return;
     this.options.push(optionControl());
@@ -95,17 +102,9 @@ export class QuestionEditor {
     correct.markAsTouched();
   }
 
-  protected onImageSelected(event: Event): void {
-    const file = (event.target as HTMLInputElement).files?.[0];
-    if (!file?.type.startsWith('image/')) return;
-    const image = this.form().controls.imageUrl;
-    image.setValue(URL.createObjectURL(file));
-    image.markAsDirty();
-  }
-
   protected removeImage(): void {
     const image = this.form().controls.imageUrl;
     image.setValue(null);
     image.markAsDirty();
   }
-}
+}

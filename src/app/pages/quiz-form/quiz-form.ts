@@ -4,6 +4,7 @@ import { Router, RouterLink } from '@angular/router'
 import { QuizService } from '../../shared/services/quiz.service'
 import { ToastService } from '../../shared/services/toast.service'
 import { ConfirmService } from '../../shared/services/confirm.service'
+import { AuthService } from '../../shared/services/auth.service'
 import { TopicPicker } from '../../shared/components/topic-picker/topic-picker'
 import { HasUnsavedChanges } from '../../shared/guards/unsaved-changes.guard'
 import { Quiz, QuizDraft } from '../../shared/models/quiz.model'
@@ -29,6 +30,7 @@ export class QuizForm implements OnInit, HasUnsavedChanges {
   private readonly toast = inject(ToastService)
   private readonly confirm = inject(ConfirmService)
   private readonly router = inject(Router)
+  private readonly auth = inject(AuthService)
 
   /** :id de la ruta; si existe, modo edición */
   readonly id = input<string>()
@@ -84,6 +86,13 @@ export class QuizForm implements OnInit, HasUnsavedChanges {
 
   // ---------- Carga ----------
   private fill (quiz: Quiz): void {
+    // Un quiz público de otro usuario se puede ver, pero no editar (la API respondería 403 al guardar)
+    if (quiz.owner._id !== this.auth.user()?._id) {
+      this.toast.warning('Solo puedes editar tus propios quizzes.')
+      this.router.navigate(['/quizzes/mine'])
+      return
+    }
+
     this.form.patchValue({
       title: quiz.title,
       description: quiz.description ?? '',
@@ -130,7 +139,7 @@ export class QuizForm implements OnInit, HasUnsavedChanges {
     this.questions.markAsDirty()
   }
 
-  // ---------- Etiquetas y portada ----------
+  // ---------- Etiquetas ----------
   protected addTag (input: HTMLInputElement): void {
     const tag = input.value.trim().toLowerCase()
     const tags = this.c.tags.value
@@ -146,18 +155,6 @@ export class QuizForm implements OnInit, HasUnsavedChanges {
     this.c.tags.markAsDirty()
   }
 
-  protected onCoverSelected (event: Event): void {
-    const file = (event.target as HTMLInputElement).files?.[0]
-    if (!file) return
-    if (!file.type.startsWith('image/')) {
-      this.toast.error('El archivo debe ser una imagen.')
-      return
-    }
-    const previous = this.coverPreview()
-    if (previous?.startsWith('blob:')) URL.revokeObjectURL(previous)
-    this.coverPreview.set(URL.createObjectURL(file)) // solo vista previa local
-    this.form.markAsDirty()
-  }
 
   // ---------- IA ----------
   protected generate (): void {
@@ -238,7 +235,8 @@ export class QuizForm implements OnInit, HasUnsavedChanges {
       questions: raw.questions.map(q => ({
         ...q,
         correctIndex: q.correctIndex ?? 0,
-        imageUrl: q.imageUrl ?? undefined
+        // Nunca mandar un blob: a la API (solo existe en este navegador)
+        imageUrl: q.imageUrl && !q.imageUrl.startsWith('blob:') ? q.imageUrl : undefined
       }))
     }
   }
