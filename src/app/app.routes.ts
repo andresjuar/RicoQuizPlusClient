@@ -29,6 +29,9 @@ export const routes: Routes = [
           { path: 'room/new', loadComponent: () => import('./pages/new-room/new-room').then(m => m.NewRoom), title: 'Nueva partida' },
         ],
       },
+
+      // Detalle público: va DESPUÉS del grupo con authGuard para que 'quizzes/mine' y 'quizzes/new' no se lean como :id
+      { path: 'quizzes/:id', loadComponent: () => import('./pages/quiz-detail/quiz-detail').then(m => m.QuizDetail), title: 'Quiz' },
     ],
   },
   {
