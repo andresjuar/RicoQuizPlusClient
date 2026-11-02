@@ -6,14 +6,30 @@
     </div>
   </header>
 
-  @if (loading()) {
-    <div class="summary">
-      @for (i of [1, 2, 3, 4]; track i) { <div class="skeleton skeleton--stat"></div> }
+  <app-view-state
+    #vs
+    [resource]="history"
+    emptyIcon="🎮"
+    emptyTitle="Aún no has jugado partidas"
+    emptyText="Cuando termines una partida, aparecerá aquí con tu puntuación y posición."
+    errorTitle="No se pudo cargar tu historial"
+  >
+    <div skeleton>
+      <div class="summary">
+        @for (i of [1, 2, 3, 4]; track i) { <div class="skeleton skeleton--stat"></div> }
+      </div>
+      <ul class="list">
+        @for (i of [1, 2, 3, 4]; track i) { <li class="skeleton skeleton--row"></li> }
+      </ul>
     </div>
-    <ul class="list">
-      @for (i of [1, 2, 3, 4]; track i) { <li class="skeleton skeleton--row"></li> }
-    </ul>
-  } @else if (summary().played) {
+
+    <div empty-action class="empty-state__actions">
+      <a class="btn btn--accent" routerLink="/">Unirme con código</a>
+      <a class="btn btn--ghost" routerLink="/room/new">Crear partida</a>
+    </div>
+  </app-view-state>
+
+  @if (vs.isReady()) {
     <section class="summary">
       <div class="card stat"><strong>{{ summary().played }}</strong><span>Partidas</span></div>
       <div class="card stat"><strong>{{ summary().wins }}</strong><span>Victorias</span></div>
@@ -51,15 +67,5 @@
         <button type="button" class="btn btn--ghost" (click)="filter.set('all')">Ver todas</button>
       </div>
     }
-  } @else {
-    <div class="empty-state">
-      <span class="empty-state__icon" aria-hidden="true">🎮</span>
-      <h2>Aún no has jugado partidas</h2>
-      <p>Cuando termines una partida, aparecerá aquí con tu puntuación y posición.</p>
-      <div class="empty-state__actions">
-        <a class="btn btn--accent" routerLink="/">Unirme con código</a>
-        <a class="btn btn--ghost" routerLink="/room/new">Crear partida</a>
-      </div>
-    </div>
   }
 </div>
