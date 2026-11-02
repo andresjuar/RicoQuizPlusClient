@@ -7,18 +7,17 @@
     </div>
 
     <div>
-      <form class="search" role="search" (submit)="$event.preventDefault()">
+      <form class="search" role="search" (submit)="$event.preventDefault(); search()">
         <span class="search__icon" aria-hidden="true">⌕</span>
         <input class="search__input" type="search" aria-label="Buscar quizzes"
-          placeholder="Busca por tema, título o categoría…"
-          [value]="search()" (input)="search.set($any($event.target).value)" />
+          placeholder="Busca por tema, título o categoría…" [formControl]="searchControl" />
         <button type="submit" class="btn btn--primary">Buscar</button>
       </form>
 
       <p class="trending">
         Tendencias:
         @for (term of trending; track term; let last = $last) {
-          <button type="button" class="trending__term" (click)="search.set(term)">{{ term }}</button>
+          <button type="button" class="trending__term" (click)="useTrending(term)">{{ term }}</button>
           @if (!last) { · }
         }
       </p>
@@ -28,35 +27,34 @@
   <div class="filters">
     <div class="filters__chips">
       <button type="button" class="chip" [class.is-active]="selected() === 'all'"
-        [attr.aria-pressed]="selected() === 'all'" (click)="selected.set('all')">✦ Todos</button>
+        [attr.aria-pressed]="selected() === 'all'" (click)="selectTopic('all')">✦ Todos</button>
       @for (c of categories; track c.id) {
         <button type="button" class="chip" [class.is-active]="selected() === c.id"
-          [attr.aria-pressed]="selected() === c.id" (click)="selected.set(c.id)">
+          [attr.aria-pressed]="selected() === c.id" (click)="selectTopic(c.id)">
           {{ c.emoji }} {{ c.label }}
         </button>
       }
     </div>
-    @if (!loading()) {
-      <span class="filters__count">{{ filtered().length }} quizzes disponibles</span>
+    @if (quizzes.hasValue()) {
+      <span class="filters__count">{{ quizzes.value().total }} quizzes disponibles</span>
     }
   </div>
 
-  @if (loading()) {
-    <div class="grid-cards">
+  <app-view-state #vs [resource]="quizzes"
+    emptyIcon="🔍" emptyTitle="No encontramos quizzes" emptyText="Prueba con otro tema o quita los filtros."
+    errorTitle="No se pudieron cargar los quizzes">
+    <div skeleton class="grid-cards">
       @for (i of [1, 2, 3, 4]; track i) { <div class="skeleton"></div> }
     </div>
-  } @else if (filtered().length) {
+    <button empty-action type="button" class="btn btn--ghost" (click)="clearFilters()">Limpiar filtros</button>
+  </app-view-state>
+
+  @if (vs.isReady()) {
     <div class="grid-cards">
-      @for (quiz of filtered(); track quiz._id) {
+      @for (quiz of quizzes.value()!.data; track quiz._id) {
         <app-quiz-card [quiz]="quiz" (action)="playQuiz($event)" />
       }
     </div>
-  } @else {
-    <div class="empty-state">
-      <span class="empty-state__icon" aria-hidden="true">🔍</span>
-      <h2>No encontramos quizzes</h2>
-      <p>Prueba con otro tema o quita los filtros.</p>
-      <button type="button" class="btn btn--ghost" (click)="clearFilters()">Limpiar filtros</button>
-    </div>
+    <app-paginator [page]="currentPage()" [totalPages]="totalPages()" (pageChange)="goToPage($event)" />
   }
 </div>
