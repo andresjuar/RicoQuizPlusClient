@@ -1,0 +1,13 @@
+:host { display: block; }
+
+.gbtn {
+  display: flex;
+  justify-content: center;
+  min-height: 44px; // evita el salto mientras carga el botón de Google
+}
+
+.gbtn__error {
+  color: var(--text-muted);
+  font-size: var(--fs-sm);
+  text-align: center;
+}

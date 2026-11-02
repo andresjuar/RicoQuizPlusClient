@@ -1,0 +1,16 @@
+# Despliegue del cliente en Netlify (N10)
+# Netlify corre `npm run build` (configuración production → environment.ts con la API de Render)
+[build]
+  command = "npm run build"
+  publish = "dist/RicoQuizPlusClient/browser"
+
+[build.environment]
+  # Angular 22 pide Node ^22.22.3 || ^24.15.0
+  NODE_VERSION = "22"
+
+# SPA: cualquier ruta (/dashboard, /quizzes/abc/edit…) la resuelve el router de Angular.
+# Sin esto, recargar en una ruta que no sea / da 404 de Netlify.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

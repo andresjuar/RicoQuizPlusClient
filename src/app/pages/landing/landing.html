@@ -20,9 +20,7 @@
         <p class="eyebrow">Hola, {{ user.displayName }}</p>
         <a class="btn btn--light btn--block" routerLink="/dashboard">Ir a mi panel</a>
       } @else {
-        <button type="button" class="btn btn--light btn--block" (click)="loginWithGoogle()">
-          <span class="g-icon" aria-hidden="true">G</span> Iniciar sesión con Google
-        </button>
+        <app-google-button text="signin_with" (credential)="loginWithGoogle($event)" />
         <p class="hero__note">¿Tienes cuenta con correo? <a class="link" routerLink="/login">Inicia sesión</a></p>
       }
 

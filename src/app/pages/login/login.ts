@@ -4,9 +4,11 @@ import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../shared/services/auth.service';
 import { ToastService } from '../../shared/services/toast.service';
 import { AuthCard } from '../../shared/components/auth-card/auth-card';
+import { GoogleButton } from '../../shared/components/google-button/google-button';
+import { User } from '../../shared/models/user.model';
 
 @Component({
-  imports: [ReactiveFormsModule, RouterLink, AuthCard],
+  imports: [ReactiveFormsModule, RouterLink, AuthCard, GoogleButton],
   selector: 'app-login',
   templateUrl: './login.html',
   styleUrl: './login.scss',
@@ -40,19 +42,28 @@ export class Login {
     const { email, password } = this.form.getRawValue();
 
     this.auth.login(email, password).subscribe({
-      next: user => {
-        this.toast.success(`¡Hola de nuevo, ${user.displayName}!`);
-        this.router.navigateByUrl(this.returnUrl() ?? '/dashboard');
-      },
-      error: (err: Error) => {
-        this.loading.set(false);
-        this.serverError.set(err.message);
-      },
+      next: user => this.welcome(user),
+      error: (err: Error) => this.fail(err),
     });
   }
 
-  // TODO Issue 7: Google Identity Services
-  protected loginWithGoogle(): void {
-    this.toast.info('El inicio de sesión con Google estará disponible pronto.');
+  /** El botón de Google ya autenticó al usuario con Google; ahora la API crea o vincula la cuenta */
+  protected loginWithGoogle(credential: string): void {
+    this.loading.set(true);
+    this.serverError.set(null);
+    this.auth.loginWithGoogle(credential).subscribe({
+      next: user => this.welcome(user),
+      error: (err: Error) => this.fail(err),
+    });
   }
-}
+
+  private welcome(user: User): void {
+    this.toast.success(`¡Hola de nuevo, ${user.displayName}!`);
+    this.router.navigateByUrl(this.returnUrl() ?? '/dashboard');
+  }
+
+  private fail(err: Error): void {
+    this.loading.set(false);
+    this.serverError.set(err.message);
+  }
+}
