@@ -1,0 +1,21 @@
+@use 'mixins' as *;
+
+.forbidden {
+  @include flex-center;
+  padding: var(--sp-8) var(--sp-4);
+}
+
+.forbidden__card {
+  width: 100%;
+  max-width: 520px;
+}
+
+.forbidden__title { font-size: var(--fs-xl); line-height: 1.2; @include up(md) { font-size: var(--fs-2xl); } }
+
+.forbidden__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--sp-2);
+  margin-top: var(--sp-2);
+}

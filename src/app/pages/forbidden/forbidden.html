@@ -1,0 +1,12 @@
+<section class="forbidden">
+  <div class="empty-state forbidden__card">
+    <span class="empty-state__icon" aria-hidden="true">🔒</span>
+    <p class="eyebrow">Error 403</p>
+    <h1 class="forbidden__title">Acceso denegado</h1>
+    <p>Tu cuenta no tiene permiso para ver esta página.</p>
+    <div class="forbidden__actions">
+      <a class="btn btn--accent" [routerLink]="homeLink()">Ir al inicio</a>
+      <a class="btn btn--ghost" routerLink="/quizzes/mine">Mis quizzes</a>
+    </div>
+  </div>
+</section>

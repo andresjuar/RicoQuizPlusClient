@@ -16,6 +16,7 @@ export const routes: Routes = [
       { path: 'login', canActivate: [guestGuard], loadComponent: () => import('./pages/login/login').then(m => m.Login), title: 'Iniciar sesión' },
       { path: 'register', canActivate: [guestGuard], loadComponent: () => import('./pages/register/register').then(m => m.Register), title: 'Registro' },
       { path: 'activate/:token', loadComponent: () => import('./pages/activate/activate').then(m => m.Activate), title: 'Activar cuenta' },
+      { path: '403', loadComponent: () => import('./pages/forbidden/forbidden').then(m => m.Forbidden), title: 'Acceso denegado' },
 
       {
         path: '',
