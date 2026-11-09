@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
+import { silent } from '../interceptors/http-context';
 import { environment } from '../../../environments/environment';
 import { Page } from '../models/api.model';
 import { Question, Quiz, QuizDraft, QuizQuery, QuizSummary } from '../models/quiz.model';
@@ -20,9 +21,9 @@ export class QuizService {
     return this.http.get<Page<QuizSummary>>(`${this.url}/mine`, { params: toParams(query) });
   }
 
-  /** GET /quizzes/:id — quiz completo con preguntas */
-  getById(id: string): Observable<Quiz> {
-    return this.http.get<Quiz>(`${this.url}/${id}`);
+  /** GET /quizzes/:id — quiz completo con preguntas; silent: el error no lanza toast (lo usa ownerGuard) */
+  getById(id: string, options: { silent?: boolean } = {}): Observable<Quiz> {
+    return this.http.get<Quiz>(`${this.url}/${id}`, options.silent ? { context: silent() } : {});
   }
 
   /** POST /quizzes o PUT /quizzes/:id según haya id */
