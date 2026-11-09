@@ -73,8 +73,8 @@ export class MyQuizzes {
           if (wasLastOnPage && this.page() > 1) this.page.update(p => p - 1);
           else this.quizzes.reload();
         },
-        // El mensaje de error ya lo mostró el interceptor
-        error: () => undefined,
+        // El interceptor ya mostró el aviso (p. ej. 403); se vuelve a pedir la lista para reflejar su estado real
+        error: () => this.quizzes.reload(),
       });
   }
 }
