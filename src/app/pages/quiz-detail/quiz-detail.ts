@@ -71,8 +71,8 @@ export class QuizDetail {
           this.toast.success(`«${quiz.title}» se eliminó correctamente.`);
           this.router.navigate(['/quizzes/mine']);
         },
-        // El mensaje de error ya lo mostró el interceptor
-        error: () => undefined,
+        // El interceptor ya mostró el aviso (p. ej. 403); se vuelve a pedir el quiz para reflejar su estado real
+        error: () => this.quiz.reload(),
       });
   }
 }
