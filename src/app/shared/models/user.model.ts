@@ -8,6 +8,9 @@ export interface User {
   createdAt: string;
 }
 
+/** Rol en la app, derivado de la sesión (la API no manda campo `role`): sin sesión = invitado */
+export type UserRole = 'invitado' | 'user';
+
 /** POST /auth/login y POST /auth/google */
 export interface AuthResponse {
   token: string;

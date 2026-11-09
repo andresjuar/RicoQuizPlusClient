@@ -4,7 +4,7 @@ import { Router } from '@angular/router';
 import { Observable, catchError, firstValueFrom, map, of, tap } from 'rxjs';
 import { silent } from '../interceptors/http-context';
 import { environment } from '../../../environments/environment';
-import { AuthResponse, RegisterResponse, User } from '../models/user.model';
+import { AuthResponse, RegisterResponse, User, UserRole } from '../models/user.model';
 import { TokenStorageService } from './token-storage.service';
 
 /** Máximo que la app espera a /auth/me antes de mostrarse (Render dormido tarda ~1 min) */
@@ -21,6 +21,17 @@ export class AuthService {
 
   readonly user = this._user.asReadonly();
   readonly isAuthenticated = computed(() => this._user() !== null);
+
+  /**
+   * Rol en la app: 'user' con sesión, 'invitado' sin ella.
+   * No confundir con host/player (PlayerRole en pages/play/game-shell.ts), que son roles de la partida.
+   */
+  readonly role = computed<UserRole>(() => (this._user() ? 'user' : 'invitado'));
+
+  /** true si el rol actual es alguno de los indicados */
+  hasRole(...roles: UserRole[]): boolean {
+    return roles.includes(this.role());
+  }
 
   /** true mientras se revisa el token guardado; la app muestra el aviso "Conectando con el servidor…" */
   private readonly _restoring = signal(false);
