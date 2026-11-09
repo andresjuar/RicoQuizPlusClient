@@ -1,32 +1,30 @@
 <header class="nav">
   <div class="nav__inner container">
-    <a class="nav__brand" [routerLink]="auth.isAuthenticated() ? '/' : '/'" (click)="closeMenus()">
+    <a class="nav__brand" routerLink="/" (click)="closeMenus()">
       <span class="nav__logo">✦</span>
       RicoQuiz<span class="nav__plus">+</span>
     </a>
 
     <nav class="nav__links" [class.is-open]="menuOpen()">
-      @if (auth.isAuthenticated()) {
-        <a routerLink="/dashboard" routerLinkActive="is-active" (click)="closeMenus()">Inicio</a>
-      } @else {
-        <a routerLink="/" routerLinkActive="is-active" [routerLinkActiveOptions]="{ exact: true }" (click)="closeMenus()">Inicio</a>
-      }
+      <a *appHasRole="'user'" routerLink="/dashboard" routerLinkActive="is-active" (click)="closeMenus()">Inicio</a>
+      <a *appHasRole="'invitado'" routerLink="/" routerLinkActive="is-active" [routerLinkActiveOptions]="{ exact: true }" (click)="closeMenus()">Inicio</a>
       <a routerLink="/explore" routerLinkActive="is-active" (click)="closeMenus()">Explorar</a>
-      @if (auth.isAuthenticated()) {
+      <ng-container *appHasRole="'user'">
         <a routerLink="/quizzes/mine" routerLinkActive="is-active" (click)="closeMenus()">Mis quizzes</a>
         <a routerLink="/history" routerLinkActive="is-active" (click)="closeMenus()">Historial</a>
-      }
+      </ng-container>
     </nav>
 
     <div class="nav__actions">
-      @if (auth.user(); as user) {
+      <ng-container *appHasRole="'user'">
+        @let user = auth.user();
         <a class="btn btn--ghost hide-mobile" routerLink="/quizzes/new">+ Crear quiz</a>
 
         <div class="nav__user">
           <button type="button" class="nav__user-btn"
             [attr.aria-expanded]="userMenuOpen()" (click)="userMenuOpen.set(!userMenuOpen())">
-            <app-avatar [name]="user.displayName" [size]="28" />
-            <span class="hide-mobile">{{ user.displayName }}</span>
+            <app-avatar [name]="user?.displayName ?? ''" [size]="28" />
+            <span class="hide-mobile">{{ user?.displayName }}</span>
             <span aria-hidden="true">▾</span>
           </button>
 
@@ -38,10 +36,11 @@
             </div>
           }
         </div>
-      } @else {
+      </ng-container>
+      <ng-container *appHasRole="'invitado'">
         <a class="btn btn--ghost" routerLink="/login">Iniciar sesión</a>
         <a class="btn btn--accent hide-mobile" routerLink="/register">Registrarse</a>
-      }
+      </ng-container>
 
       <button type="button" class="nav__toggle" aria-label="Menú"
         [attr.aria-expanded]="menuOpen()" (click)="menuOpen.set(!menuOpen())">☰</button>

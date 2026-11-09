@@ -4,18 +4,20 @@ import { AuthService } from '../../services/auth.service';
 import { Avatar } from '../avatar/avatar';
 import { ConfirmService } from '../../services/confirm.service';
 import { ToastService } from '../../services/toast.service';
+import { HasRole } from '../../directives/has-role';
 
 
 @Component({
   selector: 'app-navbar',
-  imports: [RouterLink, RouterLinkActive, Avatar],
+  imports: [RouterLink, RouterLinkActive, Avatar, HasRole],
   templateUrl: './navbar.html',
   styleUrl: './navbar.scss',
 })
 export class Navbar {
   protected readonly auth = inject(AuthService);
   private readonly confirm = inject(ConfirmService);
-  private readonly toast = inject(ToastService);  protected readonly menuOpen = signal(false);
+  private readonly toast = inject(ToastService);
+  protected readonly menuOpen = signal(false);
   protected readonly userMenuOpen = signal(false);
 
   protected closeMenus(): void {
