@@ -6,6 +6,7 @@ import { silent } from '../interceptors/http-context';
 import { environment } from '../../../environments/environment';
 import { AuthResponse, RegisterResponse, User, UserRole } from '../models/user.model';
 import { TokenStorageService } from './token-storage.service';
+import { ToastService } from './toast.service';
 
 /** Máximo que la app espera a /auth/me antes de mostrarse (Render dormido tarda ~1 min) */
 const RESTORE_WAIT_MS = 5000;
@@ -15,6 +16,7 @@ export class AuthService {
   private readonly http = inject(HttpClient);
   private readonly tokenStorage = inject(TokenStorageService);
   private readonly router = inject(Router);
+  private readonly toast = inject(ToastService);
   private readonly url = `${environment.apiUrl}/auth`;
 
   private readonly _user = signal<User | null>(null);
@@ -56,6 +58,7 @@ export class AuthService {
         catchError((err: unknown) => {
           if (err instanceof HttpErrorResponse ? err.status === 401 : (err as { status?: number }).status === 401) {
             this.tokenStorage.clear();
+            this.toast.warning('Tu sesión expiró. Vuelve a iniciar sesión.');
           }
           return of(undefined);
         }),
