@@ -12,10 +12,9 @@
     </div>
 
     <a class="btn btn--accent btn--block" routerLink="/login">Ir a iniciar sesión</a>
-    <button type="button" class="btn btn--ghost btn--block" (click)="resend()">Reenviar correo</button>
-
-    <!-- Solo para la demo: simula abrir el enlace del correo -->
-    <a class="link demo-link" routerLink="/activate/demo-token">Simular enlace de activación →</a>
+    <button type="button" class="btn btn--ghost btn--block" [disabled]="resending()" (click)="resend()">
+      {{ resending() ? 'Enviando…' : 'Reenviar correo' }}
+    </button>
   } @else {
     <app-google-button text="signup_with" (credential)="registerWithGoogle($event)" />
 
