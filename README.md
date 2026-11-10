@@ -138,6 +138,8 @@ Hay dos roles y se obtienen **de la sesión**: sin sesión eres `invitado` y con
 
 `host` y `player` (`PlayerRole` en la pantalla de partida) son roles **del juego**, no de la aplicación.
 
+> Sólo para aclararlo: en esta entrega los permisos se resuelven con rutas autenticadas y *ownership* de quizzes. El rol `host`, que podrá expulsar jugadores, se implementará en la siguiente entrega junto con Socket.io. Será un rol de runtime: lo tiene quien crea la sala, mientras la sala existe. Las directivas `*appIsHost` y `*appIsPlayer` (con `RoomSession`) ya están creadas para esa entrega.
+
 ### Guardias de ruta
 
 | Guardia | Qué hace | Rutas |
@@ -167,11 +169,18 @@ Login y registro muestran errores por campo, deshabilitan el botón mientras se 
 
 El repo no guarda secretos. Las variables del cliente están en `src/environments/` y su plantilla es `src/environments/environment.example.ts`. La URL de la API y el client ID de Google son identificadores públicos. Los secretos reales (`JWT_SECRET`, URI de Mongo, llaves de Gemini, Cloudinary y Brevo, entre otros) viven en las variables de entorno de la API en Render. La API incluye un `.env.example` con los nombres de esas variables, sin valores, y su `.env` está en `.gitignore`.
 
+### Usuarios de prueba
+
+| Cuenta | Correo | Contraseña | Para probar |
+| --- | --- | --- | --- |
+| A | `test@test.com` | `12345678` | Dueña de "Quiz Ejemplo Ciencia" |
+| B | `test2@test.com` | `12345678` | Entrar a `/quizzes/6af28de1e75af1cc127fe9db/edit` lleva a `/403` |
+
 ### Cómo comprobarlo
 
 1. Sin sesión, abre `/quizzes/mine`: te lleva a `/login?returnUrl=%2Fquizzes%2Fmine` y, al iniciar sesión, regresas a Mis quizzes.
 2. Con sesión, abre `/login`: te lleva a `/dashboard`.
-3. Con la cuenta B, abre `/quizzes/<id de un quiz de A>/edit`: te lleva a `/403`.
+3. Con la cuenta B, abre `/quizzes/6af28de1e75af1cc127fe9db/edit`: te lleva a `/403`.
 4. Inicia y cierra sesión: el navbar cambia sin recargar.
 5. Borra el token de localStorage y navega a Mis quizzes: sale "Tu sesión expiró" y vuelves al login.
 
