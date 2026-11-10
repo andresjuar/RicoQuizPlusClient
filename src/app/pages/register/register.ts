@@ -25,6 +25,7 @@ export class Register {
   protected readonly serverError = signal<string | null>(null);
   /** Correo al que se envió la activación; si tiene valor, se muestra el estado de éxito */
   protected readonly sentTo = signal<string | null>(null);
+  protected readonly resending = signal(false);
 
   protected readonly form = this.fb.nonNullable.group(
     {
@@ -81,7 +82,18 @@ export class Register {
   }
 
   protected resend(): void {
-    this.toast.info(`Reenviamos el enlace a ${this.sentTo()}.`);
+    const email = this.sentTo();
+    if (!email || this.resending()) return;
+
+    this.resending.set(true);
+    this.auth.resendActivation(email).subscribe({
+      next: () => {
+        this.resending.set(false);
+        this.toast.success(`Enviamos un nuevo enlace a ${email}.`);
+      },
+      // El mensaje de error ya lo mostró el interceptor
+      error: () => this.resending.set(false),
+    });
   }
 
   /** Con Google no hay activación por correo: la API crea la cuenta (o la vincula) y regresa la sesión */

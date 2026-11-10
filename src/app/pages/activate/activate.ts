@@ -51,10 +51,14 @@ export class Activate implements OnInit {
     this.resending.set(true);
     const { email } = this.resendForm.getRawValue();
 
-    this.auth.resendActivation(email).subscribe(() => {
-      this.resending.set(false);
-      this.resendForm.reset();
-      this.toast.success(`Enviamos un nuevo enlace a ${email}.`);
+    this.auth.resendActivation(email).subscribe({
+      next: () => {
+        this.resending.set(false);
+        this.resendForm.reset();
+        this.toast.success(`Enviamos un nuevo enlace a ${email}.`);
+      },
+      // El mensaje de error ya lo mostró el interceptor; solo se rehabilita el botón
+      error: () => this.resending.set(false),
     });
   }
 }
