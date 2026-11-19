@@ -21,7 +21,7 @@
         <div class="code-card__row">
           <strong class="code-card__code">{{ formattedCode() }}</strong>
           <button type="button" class="code-card__copy" aria-label="Copiar código de sala"
-                  [appCopyToClipboard]="code()" (copied)="onCopied($event)">
+                  [appCopyToClipboard]="formattedCode()" (copied)="onCopied($event)">
             <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"
                  stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <rect x="9" y="9" width="11" height="11" rx="2" /><path d="M5 15V6a2 2 0 012-2h9" />

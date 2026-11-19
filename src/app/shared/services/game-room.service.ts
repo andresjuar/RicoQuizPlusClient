@@ -10,6 +10,7 @@ import {
   PublicPlayer,
   PublicQuestion,
 } from '../models/game.model';
+import { ROOM_CODE_LENGTH, ROOM_CODE_PATTERN, normalizeRoomCode } from '../models/match.model';
 import { QuizSummary } from '../models/quiz.model';
 import {
   ClientEvent,
@@ -96,12 +97,22 @@ export class GameRoom {
    * Entra a la sala `code`. Con sesión se une directo; como invitado primero pide un nombre.
    * `matchId` y `quiz` llegan por el state de la navegación desde /room/new (solo el host los tiene).
    */
-  enter(code: string, opts: { matchId?: string; quiz?: QuizSummary } = {}): void {
-    this.roomCode = code.trim().toUpperCase();
+  async enter(code: string, opts: { matchId?: string; quiz?: QuizSummary } = {}): Promise<void> {
+    this.roomCode = normalizeRoomCode(code);
     this._matchId.set(opts.matchId ?? null);
     this._quiz.set(opts.quiz ?? null);
     this._errorMessage.set(null);
+
+    if (!ROOM_CODE_PATTERN.test(this.roomCode)) {
+      this.fail(`«${code}» no es un código de sala válido: son ${ROOM_CODE_LENGTH} letras.`);
+      return;
+    }
+
     this._phase.set('connecting');
+
+    // Al recargar, /auth/me puede seguir en curso (Render dormido): sin esperar, el host
+    // se trataría como invitado y el servidor no lo reconocería como dueño de la sala
+    await this.auth.whenReady();
     this.socket.ensureConnected();
 
     if (this.auth.isAuthenticated()) {
@@ -121,7 +132,7 @@ export class GameRoom {
 
   /** Reintentar desde la pantalla de error */
   retry(): void {
-    this.enter(this.roomCode, { matchId: this._matchId() ?? undefined, quiz: this._quiz() ?? undefined });
+    void this.enter(this.roomCode, { matchId: this._matchId() ?? undefined, quiz: this._quiz() ?? undefined });
   }
 
   // Acciones del host
@@ -198,7 +209,13 @@ export class GameRoom {
 
     on('room:joined_ok').subscribe(p => this.onJoined(p));
 
-    on('room:player_joined').subscribe(p => this._players.set(p.players));
+    // Lista en vivo del lobby: el servidor manda la lista completa, así que solo se reemplaza
+    on('room:player_joined').subscribe(p => {
+      this._players.set(p.players);
+      if (this.isHost() && this._phase() === 'lobby') {
+        this.toast.info(`${p.joined.displayName} ${p.reconnected ? 'volvió a' : 'entró a'} la sala`);
+      }
+    });
     on('room:player_disconnected').subscribe(p => this._players.set(p.players));
     on('room:player_left').subscribe(p => {
       this._players.set(p.players);

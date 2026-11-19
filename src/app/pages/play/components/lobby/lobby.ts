@@ -1,5 +1,6 @@
 import { Component, computed, inject, input, output } from '@angular/core';
 import { PublicPlayer } from '../../../../shared/models/game.model';
+import { normalizeRoomCode } from '../../../../shared/models/match.model';
 import { QuizSummary } from '../../../../shared/models/quiz.model';
 import { CopyToClipboard } from '../../../../shared/directives/copy-to-clipboard';
 import { IsHost } from '../../../../shared/directives/is-host';
@@ -34,11 +35,8 @@ export class Lobby {
     return `${n} ${n === 1 ? 'pregunta' : 'preguntas'}`;
   });
 
-  // "482190" -> "482 190"
-  protected readonly formattedCode = computed(() => {
-    const c = this.code();
-    return c.length === 6 ? `${c.slice(0, 3)} ${c.slice(3)}` : c;
-  });
+  // 4 letras del backend, siempre en mayúsculas aunque la URL venga en minúsculas: "qwer" -> "QWER"
+  protected readonly formattedCode = computed(() => normalizeRoomCode(this.code()));
 
   protected onCopied(ok: boolean): void {
     if (ok) this.toast.success('Código de sala copiado');

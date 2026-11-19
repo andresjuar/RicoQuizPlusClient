@@ -65,7 +65,7 @@ export class GameShell implements GameLeaveState, OnInit {
   ngOnInit(): void {
     // quiz y matchId solo llegan cuando el host viene de /room/new
     const state = history.state as { quiz?: QuizSummary; matchId?: string } | undefined;
-    this.room.enter(this.code(), { quiz: state?.quiz, matchId: state?.matchId });
+    void this.room.enter(this.code(), { quiz: state?.quiz, matchId: state?.matchId });
   }
 
   /** Lo consulta leaveGameGuard: confirma la salida solo si hay partida en curso */

@@ -142,3 +142,15 @@
   50% { opacity: 0.35; transform: scale(0.7); }
 }
 .lobby__empty { margin: 0; font-size: var(--fs-sm); color: var(--text-muted); }
+
+// Cada jugador que entra aparece con una pequeña animación (la lista llega por room:player_joined)
+.lobby__grid > li { animation: chip-in 220ms ease-out; }
+
+@keyframes chip-in {
+  from { opacity: 0; transform: translateY(6px) scale(0.97); }
+  to { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lobby__grid > li { animation: none; }
+}
