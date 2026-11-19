@@ -19,21 +19,9 @@
 }
 
 .brand {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--sp-2);
-  font-weight: 600;
-
-  b { color: var(--accent); }
-
-  &__mark {
-    @include flex-center;
-    width: 28px;
-    height: 28px;
-    border-radius: var(--radius-sm);
-    background: var(--primary-gradient);
-    color: #fff;
-  }
+  display: block;
+  height: 30px;
+  width: auto;
 }
 
 .status {

@@ -50,7 +50,8 @@ export class GameShell implements GameLeaveState, OnInit {
     switch (this.room.connectionStatus()) {
       case 'reconnecting': return { label: 'Reconectando…', tone: 'warn' };
       case 'disconnected':
-        if (this.room.phase() !== 'guest-gate') return { label: 'Sin conexión', tone: 'error' };
+        // Sin sala todavía (nombre de invitado o código inválido) no es un problema de conexión
+        if (!['guest-gate', 'error'].includes(this.room.phase())) return { label: 'Sin conexión', tone: 'error' };
     }
     switch (this.room.phase()) {
       case 'connecting': return { label: 'Conectando', tone: 'warn' };
