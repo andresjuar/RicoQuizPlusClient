@@ -99,7 +99,9 @@
     </div>
     <div class="bar__actions">
       <a class="btn btn--ghost" routerLink="/dashboard">Cancelar</a>
-      <button type="button" class="btn btn--accent" [disabled]="!selected()" (click)="createRoom()">Crear sala</button>
+      <button type="button" class="btn btn--accent" [disabled]="!selected() || creating()" (click)="createRoom()">
+        {{ creating() ? 'Creando sala…' : 'Crear sala' }}
+      </button>
     </div>
   </div>
 </div>

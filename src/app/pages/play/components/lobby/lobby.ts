@@ -1,12 +1,15 @@
 import { Component, computed, inject, input, output } from '@angular/core';
-import { PlayerRole, PublicPlayer } from '../../../../shared/models/game.model';
+import { PublicPlayer } from '../../../../shared/models/game.model';
 import { QuizSummary } from '../../../../shared/models/quiz.model';
 import { CopyToClipboard } from '../../../../shared/directives/copy-to-clipboard';
+import { IsHost } from '../../../../shared/directives/is-host';
+import { IsPlayer } from '../../../../shared/directives/is-player';
 import { ToastService } from '../../../../shared/services/toast.service';
 import { PlayerChip } from '../player-chip/player-chip';
 
+/** Lo que ve cada quien lo deciden *appIsHost / *appIsPlayer (rol que asigna el servidor en RoomSession) */
 @Component({
-  imports: [CopyToClipboard, PlayerChip],
+  imports: [CopyToClipboard, IsHost, IsPlayer, PlayerChip],
   selector: 'app-lobby',
   styleUrl: './lobby.scss',
   templateUrl: './lobby.html',
@@ -14,10 +17,9 @@ import { PlayerChip } from '../player-chip/player-chip';
 export class Lobby {
   private readonly toast = inject(ToastService);
 
-  readonly role = input.required<PlayerRole>();
   readonly code = input.required<string>();
+  /** Solo jugadores: el host no aparece en la lista que manda el servidor */
   readonly players = input.required<PublicPlayer[]>();
-  readonly hostSocketId = input.required<string>();
   /** Quiz de la sala; solo se muestra al host */
   readonly quiz = input<QuizSummary | null>(null);
 

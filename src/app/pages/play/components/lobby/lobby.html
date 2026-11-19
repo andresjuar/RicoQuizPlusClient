@@ -14,7 +14,7 @@
     </span>
   </header>
 
-  @if (role() === 'host') {
+  <ng-container *appIsHost>
     <div class="lobby__access">
       <div class="code-card">
         <span class="code-card__label">Código de sala</span>
@@ -55,41 +55,43 @@
         </button>
       </div>
     }
-  }
+  </ng-container>
 
   <div class="lobby__players">
     <div class="lobby__players-head">
       <h2>Jugadores</h2>
       <span>Se actualiza en vivo</span>
     </div>
-    <ul class="lobby__grid">
-      @for (p of players(); track p.socketId) {
-        <li><app-player-chip [player]="p" [isHost]="p.socketId === hostSocketId()" /></li>
-      }
-    </ul>
+    @if (players().length) {
+      <ul class="lobby__grid">
+        @for (p of players(); track p.socketId) {
+          <li><app-player-chip [player]="p" /></li>
+        }
+      </ul>
+    } @else {
+      <p class="lobby__empty">Todavía no entra nadie. Comparte el código de la sala.</p>
+    }
   </div>
 
-  @if (role() === 'host') {
-    <footer class="lobby__footer">
-      <span class="lobby__hint">
-        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"
-             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z" /><circle cx="12" cy="12" r="3" />
-        </svg>
-        Visible solo para el host
-      </span>
-      <button type="button" class="btn btn--success btn--block" (click)="start.emit()">
-        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"
-             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M7 4.5v15l12-7.5-12-7.5z" />
-        </svg>
-        Iniciar partida
-      </button>
-    </footer>
-  } @else {
-    <footer class="lobby__waiting" role="status">
-      <span class="lobby__pulse" aria-hidden="true"></span>
-      Esperando a que el anfitrión inicie la partida…
-    </footer>
-  }
+  <footer *appIsHost class="lobby__footer">
+    <span class="lobby__hint">
+      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z" /><circle cx="12" cy="12" r="3" />
+      </svg>
+      Visible solo para el host
+    </span>
+    <button type="button" class="btn btn--success btn--block" [disabled]="!connectedCount()" (click)="start.emit()">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M7 4.5v15l12-7.5-12-7.5z" />
+      </svg>
+      Iniciar partida
+    </button>
+  </footer>
+
+  <footer *appIsPlayer class="lobby__waiting" role="status">
+    <span class="lobby__pulse" aria-hidden="true"></span>
+    Esperando a que el anfitrión inicie la partida…
+  </footer>
 </section>

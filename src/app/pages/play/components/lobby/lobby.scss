@@ -141,3 +141,4 @@
   0%, 100% { opacity: 1; transform: scale(1); }
   50% { opacity: 0.35; transform: scale(0.7); }
 }
+.lobby__empty { margin: 0; font-size: var(--fs-sm); color: var(--text-muted); }

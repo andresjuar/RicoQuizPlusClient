@@ -1,9 +1,11 @@
 import { Component, computed, input, output } from '@angular/core';
-import { LeaderboardEntry, PlayerRole } from '../../../../shared/models/game.model';import { Podium } from '../podium/podium';
+import { IsHost } from '../../../../shared/directives/is-host';
+import { LeaderboardEntry } from '../../../../shared/models/game.model';
+import { Podium } from '../podium/podium';
 import { RankRow } from '../rank-row/rank-row';
 
 @Component({
-  imports: [Podium, RankRow],
+  imports: [IsHost, Podium, RankRow],
   selector: 'app-final-results',
   styleUrl: './final-results.scss',
   templateUrl: './final-results.html',
@@ -13,8 +15,8 @@ export class FinalResults {
   readonly entries = input.required<LeaderboardEntry[]>();
   /** socketId del jugador actual, para resaltar su fila */
   readonly mySocketId = input<string | null>(null);
-  readonly role = input<PlayerRole>('player');
 
+  /** Solo el host (*appIsHost): game:play_again */
   readonly playAgain = output<void>();
   /** El shell decide a dónde ir: `/history` con sesión, `/` sin ella */
   readonly leave = output<void>();

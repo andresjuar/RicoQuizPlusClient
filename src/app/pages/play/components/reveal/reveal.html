@@ -15,11 +15,12 @@
     </span>
     <div>
       <strong class="rv__title">{{ title() }}</strong>
-      @if (result() === 'host') {
-        <p class="rv__sub"><b>{{ revealed().correctText }}</b></p>
-      } @else if (result() !== 'correct') {
-        <p class="rv__sub">La respuesta correcta era: <b>{{ revealed().correctText }}</b></p>
-      }
+      <p *appIsHost class="rv__sub"><b>{{ revealed().correctText }}</b></p>
+      <ng-container *appIsPlayer>
+        @if (result() !== 'correct') {
+          <p class="rv__sub">La respuesta correcta era: <b>{{ revealed().correctText }}</b></p>
+        }
+      </ng-container>
     </div>
   </div>
 
