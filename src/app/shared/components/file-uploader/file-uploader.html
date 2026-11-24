@@ -1,0 +1,54 @@
+<div class="uploader">
+  <div
+    class="drop"
+    [class.is-dragging]="dragging()"
+    [class.is-disabled]="disabled()"
+    [style.background-image]="(previewUrl() ?? currentUrl()) ? 'url(' + (previewUrl() ?? currentUrl()) + ')' : null"
+    role="button"
+    tabindex="0"
+    [attr.aria-disabled]="disabled() || busy()"
+    aria-label="Elegir imagen o arrastrarla aquí"
+    (click)="openSelector(fileInput)"
+    (keydown.enter)="openSelector(fileInput)"
+    (keydown.space)="$event.preventDefault(); openSelector(fileInput)"
+    (dragover)="onDragOver($event)"
+    (dragleave)="dragging.set(false)"
+    (drop)="onDrop($event)"
+  >
+    @if (!previewUrl() && !currentUrl()) {
+      <span aria-hidden="true">🖼️</span>
+      <small>Arrastra una imagen o haz clic<br />JPG, PNG, WEBP o GIF · máx. {{ maxMb }} MB</small>
+    } @else if (!busy()) {
+      <small class="drop__hint">Clic o arrastra para cambiar</small>
+    }
+  </div>
+
+  <input #fileInput hidden type="file" accept="image/jpeg,image/png,image/webp,image/gif"
+    (change)="onInputChange(fileInput)" />
+
+  @if (busy()) {
+    <div class="progress" role="progressbar" [attr.aria-valuenow]="progress()" aria-valuemin="0" aria-valuemax="100">
+      <div class="progress__bar" [style.width.%]="progress()"></div>
+    </div>
+    <p class="status">
+      {{ status() === 'processing' ? 'Guardando imagen…' : 'Subiendo… ' + progress() + '%' }}
+    </p>
+  }
+
+  @if (error(); as message) {
+    <p class="error" role="alert">{{ message }}</p>
+  }
+
+  @if (file() && !busy()) {
+    <p class="file">{{ file()!.name }} · {{ (file()!.size / 1024 / 1024).toFixed(2) }} MB</p>
+  }
+
+  <div class="actions">
+    @if (busy()) {
+      <button type="button" class="btn btn--ghost" (click)="cancel()">Cancelar</button>
+    } @else if (file()) {
+      <button type="button" class="btn btn--ghost" (click)="clear()">Quitar</button>
+      <button type="button" class="btn btn--accent" [disabled]="disabled()" (click)="send()">Subir imagen</button>
+    }
+  </div>
+</div>

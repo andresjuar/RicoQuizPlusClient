@@ -5,6 +5,7 @@ import { QuizService } from '../../shared/services/quiz.service'
 import { ToastService } from '../../shared/services/toast.service'
 import { ConfirmService } from '../../shared/services/confirm.service'
 import { TopicPicker } from '../../shared/components/topic-picker/topic-picker'
+import { FileUploader } from '../../shared/components/file-uploader/file-uploader'
 import { HasUnsavedChanges } from '../../shared/guards/unsaved-changes.guard'
 import { Quiz, QuizDraft } from '../../shared/models/quiz.model'
 import {
@@ -17,7 +18,7 @@ import {
 type Mode = 'manual' | 'ai'
 
 @Component({
-  imports: [ReactiveFormsModule, RouterLink, TopicPicker, QuestionEditor],
+  imports: [ReactiveFormsModule, RouterLink, TopicPicker, QuestionEditor, FileUploader],
   selector: 'app-quiz-form',
   templateUrl: './quiz-form.html',
   styleUrl: './quiz-form.scss',
@@ -30,7 +31,6 @@ export class QuizForm implements OnInit, HasUnsavedChanges {
   private readonly confirm = inject(ConfirmService)
   private readonly router = inject(Router)
 
-  /** :id de la ruta; si existe, modo edición */
   readonly id = input<string>()
   protected readonly isEdit = computed(() => !!this.id())
 
@@ -74,7 +74,6 @@ export class QuizForm implements OnInit, HasUnsavedChanges {
         this.loading.set(false)
         this.fill(quiz)
       },
-      // 404 (no existe o es privado de otro usuario): el interceptor ya mostró el toast
       error: () => {
         this.loading.set(false)
         this.router.navigate(['/quizzes/mine'])
@@ -82,7 +81,6 @@ export class QuizForm implements OnInit, HasUnsavedChanges {
     })
   }
 
-  // ---------- Carga ----------
   private fill (quiz: Quiz): void {
     this.form.patchValue({
       title: quiz.title,
@@ -101,7 +99,13 @@ export class QuizForm implements OnInit, HasUnsavedChanges {
     list.forEach(q => this.questions.push(createQuestionForm(q)))
   }
 
-  // ---------- Preguntas ----------
+  protected readonly uploadCover = (file: File) => this.quizService.uploadCover(this.id()!, file)
+
+  protected onCoverUploaded (url: string): void {
+    this.coverPreview.set(url)
+    this.toast.success('La portada se subió correctamente.')
+  }
+
   protected addQuestion (): void {
     this.questions.push(createQuestionForm())
     this.questions.markAsDirty()
@@ -130,7 +134,6 @@ export class QuizForm implements OnInit, HasUnsavedChanges {
     this.questions.markAsDirty()
   }
 
-  // ---------- Etiquetas ----------
   protected addTag (input: HTMLInputElement): void {
     const tag = input.value.trim().toLowerCase()
     const tags = this.c.tags.value
@@ -147,7 +150,6 @@ export class QuizForm implements OnInit, HasUnsavedChanges {
   }
 
 
-  // ---------- IA ----------
   protected generate (): void {
     const topic = this.c.topic
     if (topic.invalid || this.numQuestions.invalid) {
@@ -183,7 +185,6 @@ export class QuizForm implements OnInit, HasUnsavedChanges {
       .subscribe(ok => ok && run())
   }
 
-  // ---------- Guardar / salir ----------
   protected save (): void {
     if (this.form.invalid) {
       this.form.markAllAsTouched()
@@ -202,12 +203,12 @@ export class QuizForm implements OnInit, HasUnsavedChanges {
         )
         this.router.navigate(['/quizzes/mine'])
       },
-      error: () => this.saving.set(false) // el botón se vuelve a habilitar; el mensaje lo pone #33
+      error: () => this.saving.set(false) 
     })
   }
 
   protected cancel (): void {
-    this.router.navigate(['/quizzes/mine']) // el guard pide confirmación si hay cambios
+    this.router.navigate(['/quizzes/mine']) 
   }
 
   hasUnsavedChanges (): boolean {
@@ -215,7 +216,7 @@ export class QuizForm implements OnInit, HasUnsavedChanges {
   }
 
   protected onBeforeUnload (event: BeforeUnloadEvent): void {
-    if (this.hasUnsavedChanges()) event.preventDefault() // aviso nativo al cerrar o recargar la pestaña
+    if (this.hasUnsavedChanges()) event.preventDefault() 
   }
 
   private toDraft (): QuizDraft {
@@ -226,7 +227,6 @@ export class QuizForm implements OnInit, HasUnsavedChanges {
       questions: raw.questions.map(q => ({
         ...q,
         correctIndex: q.correctIndex ?? 0,
-        // Nunca mandar un blob: a la API (solo existe en este navegador)
         imageUrl: q.imageUrl && !q.imageUrl.startsWith('blob:') ? q.imageUrl : undefined
       }))
     }
