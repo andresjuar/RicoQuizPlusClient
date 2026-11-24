@@ -32,7 +32,7 @@ export class QuizService {
     return this.http.delete(`${this.url}/${id}`).pipe(map(() => undefined));
   }
 
- 
+
   uploadCover(id: string, file: File): Observable<UploadEvent> {
     const body = new FormData();
     body.append('image', file);
@@ -52,10 +52,15 @@ export class QuizService {
           if (event.type === HttpEventType.Response) {
             return { progress: 100, url: event.body?.imageUrl };
           }
-          return null; // Sent, ResponseHeader, etc.: no interesan
+          return null; 
         }),
         filter((event): event is UploadEvent => event !== null),
       );
+  }
+
+
+  removeCover(id: string): Observable<Quiz> {
+    return this.http.put<Quiz>(`${this.url}/${id}`, { coverImageUrl: '' });
   }
 
   generateQuestions(topic: string, numQuestions: number): Observable<Question[]> {

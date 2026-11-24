@@ -5,6 +5,7 @@ import { filter, switchMap } from 'rxjs';
 import { AuthService } from '../../shared/services/auth.service';
 import { QuizService } from '../../shared/services/quiz.service';
 import { ConfirmService } from '../../shared/services/confirm.service';
+import { ImageViewerService } from '../../shared/services/image-viewer.service';
 import { ToastService } from '../../shared/services/toast.service';
 import { ViewState } from '../../shared/components/view-state/view-state';
 import { categoryOf } from '../../shared/models/categories';
@@ -21,9 +22,9 @@ export class QuizDetail {
   private readonly auth = inject(AuthService);
   private readonly confirm = inject(ConfirmService);
   private readonly toast = inject(ToastService);
+  private readonly viewer = inject(ImageViewerService);
   private readonly router = inject(Router);
 
-  /** :id de la ruta (withComponentInputBinding lo entrega como input) */
   readonly id = input.required<string>();
 
   protected readonly quiz = rxResource({
@@ -31,14 +32,12 @@ export class QuizDetail {
     stream: ({ params }) => this.quizService.getById(params),
   });
 
-  /** Solo el dueño ve la respuesta correcta y los botones Editar / Eliminar */
   protected readonly isOwner = computed(
     () => this.quiz.hasValue() && this.quiz.value().owner._id === this.auth.user()?._id,
   );
 
   protected readonly category = computed(() => categoryOf(this.quiz.hasValue() ? this.quiz.value().topic : undefined));
 
-  /** Tiempo de cada pregunta + ~10 s de reveal/leaderboard (misma cuenta que la tarjeta) */
   protected readonly minutes = computed(() => {
     if (!this.quiz.hasValue()) return 0;
     const { questions } = this.quiz.value();
@@ -48,6 +47,35 @@ export class QuizDetail {
 
   protected play(quiz: Quiz): void {
     this.router.navigate(['/room/new'], { queryParams: { quiz: quiz._id } });
+  }
+
+  protected viewCover(quiz: Quiz): void {
+    if (!quiz.coverImageUrl) return;
+    this.viewer
+      .open({ url: quiz.coverImageUrl, title: quiz.title, canDelete: this.isOwner() })
+      .pipe(filter(result => result === 'delete'))
+      .subscribe(() => this.removeCover(quiz));
+  }
+
+  protected removeCover(quiz: Quiz): void {
+    this.confirm
+      .confirm({
+        title: '¿Eliminar la portada?',
+        message: 'El quiz se quedará sin portada. Podrás subir otra desde Editar.',
+        confirmText: 'Eliminar',
+        variant: 'danger',
+      })
+      .pipe(
+        filter(Boolean),
+        switchMap(() => this.quizService.removeCover(quiz._id)),
+      )
+      .subscribe({
+        next: () => {
+          this.toast.success('La portada se eliminó correctamente.');
+          this.quiz.reload();
+        },
+        error: () => this.quiz.reload(),
+      });
   }
 
   protected edit(quiz: Quiz): void {
@@ -71,7 +99,6 @@ export class QuizDetail {
           this.toast.success(`«${quiz.title}» se eliminó correctamente.`);
           this.router.navigate(['/quizzes/mine']);
         },
-        // El interceptor ya mostró el aviso (p. ej. 403); se vuelve a pedir el quiz para reflejar su estado real
         error: () => this.quiz.reload(),
       });
   }
