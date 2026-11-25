@@ -1,7 +1,7 @@
 <article class="qc">
   <div class="qc__cover" [style.--tone]="category().color">
     @if (quiz().coverImageUrl; as url) {
-      <img [src]="url" [alt]="quiz().title" loading="lazy" />
+      <app-image-frame class="qc__img" [src]="url" [alt]="quiz().title" />
     } @else {
       <span class="qc__emoji" aria-hidden="true">{{ category().emoji }}</span>
     }

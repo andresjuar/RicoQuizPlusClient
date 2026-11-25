@@ -1,10 +1,11 @@
 import { Component, computed, input, output, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { ImageFrame } from '../image-frame/image-frame';
 import { QuizSummary } from '../../models/quiz.model';
 import { categoryOf } from '../../models/categories';
 
 @Component({
-  imports: [RouterLink],
+  imports: [ImageFrame, RouterLink],
   selector: 'app-quiz-card',
   templateUrl: './quiz-card.html',
   styleUrl: './quiz-card.scss',

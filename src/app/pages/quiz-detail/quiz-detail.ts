@@ -7,12 +7,13 @@ import { QuizService } from '../../shared/services/quiz.service';
 import { ConfirmService } from '../../shared/services/confirm.service';
 import { ImageViewerService } from '../../shared/services/image-viewer.service';
 import { ToastService } from '../../shared/services/toast.service';
+import { ImageFrame } from '../../shared/components/image-frame/image-frame';
 import { ViewState } from '../../shared/components/view-state/view-state';
 import { categoryOf } from '../../shared/models/categories';
 import { Quiz } from '../../shared/models/quiz.model';
 
 @Component({
-  imports: [RouterLink, ViewState],
+  imports: [ImageFrame, RouterLink, ViewState],
   selector: 'app-quiz-detail',
   templateUrl: './quiz-detail.html',
   styleUrl: './quiz-detail.scss',
@@ -74,6 +75,38 @@ export class QuizDetail {
           this.toast.success('La portada se eliminó correctamente.');
           this.quiz.reload();
         },
+        error: () => this.quiz.reload(),
+      });
+  }
+
+  /** Imagen de una pregunta: cualquiera puede verla y descargarla; solo el dueño puede eliminarla */
+  protected viewQuestionImage(quiz: Quiz, index: number): void {
+    const url = quiz.questions[index]?.imageUrl;
+    if (!url) return;
+    this.viewer
+      .open({ url, title: `Pregunta ${index + 1}: ${quiz.questions[index].question}`, canDelete: this.isOwner() })
+      .pipe(filter(result => result === 'delete'))
+      .subscribe(() => this.removeQuestionImage(quiz, index));
+  }
+
+  protected removeQuestionImage(quiz: Quiz, index: number): void {
+    this.confirm
+      .confirm({
+        title: '¿Eliminar la imagen de la pregunta?',
+        message: `La pregunta ${index + 1} se quedará sin imagen. Podrás subir otra desde Editar.`,
+        confirmText: 'Eliminar',
+        variant: 'danger',
+      })
+      .pipe(
+        filter(Boolean),
+        switchMap(() => this.quizService.removeQuestionImage(quiz, index)),
+      )
+      .subscribe({
+        next: () => {
+          this.toast.success('La imagen de la pregunta se eliminó correctamente.');
+          this.quiz.reload();
+        },
+        // El interceptor ya avisó (p. ej. 403 si no eres el dueño); se recarga para no quedar desincronizado
         error: () => this.quiz.reload(),
       });
   }

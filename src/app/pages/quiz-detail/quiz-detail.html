@@ -12,7 +12,7 @@
       <div class="hero__cover" [style.--tone]="category().color">
         @if (q.coverImageUrl) {
           <button type="button" class="hero__cover-btn" aria-label="Ver portada en grande" (click)="viewCover(q)">
-            <img [src]="q.coverImageUrl" [alt]="q.title" />
+            <app-image-frame [src]="q.coverImageUrl" [alt]="q.title" [lazy]="false" />
           </button>
         } @else {
           <span class="hero__emoji" aria-hidden="true">{{ category().emoji }}</span>
@@ -45,9 +45,16 @@
     <section class="questions">
       <h2>Preguntas</h2>
       <ol class="questions__list">
-        @for (question of q.questions; track $index) {
+        @for (question of q.questions; track $index; let qi = $index) {
           <li class="question card">
             <h3 class="question__text">{{ question.question }}</h3>
+            @if (question.imageUrl; as url) {
+              <!-- Miniatura: abre el visor (ver en grande, descargar y, si eres el dueño, eliminar) -->
+              <button type="button" class="question__img" [attr.aria-label]="'Ver imagen de la pregunta ' + (qi + 1)"
+                      (click)="viewQuestionImage(q, qi)">
+                <app-image-frame [src]="url" [alt]="'Imagen de la pregunta ' + (qi + 1)" />
+              </button>
+            }
             <ul class="options">
               @for (option of question.options; track $index) {
                 <li class="option" [class.is-correct]="isOwner() && $index === question.correctIndex">

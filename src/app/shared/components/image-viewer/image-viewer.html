@@ -1,11 +1,14 @@
 <div class="viewer" role="dialog" aria-modal="true" aria-label="Imagen ampliada">
-  <img class="viewer__img" [src]="data.url" [alt]="data.title" />
+  <app-image-frame class="viewer__img" [src]="data.url" [alt]="data.title" fit="contain"
+                   [lazy]="false" [retryable]="true" (failed)="failed.set(true)" />
 
   <div class="viewer__bar">
     <span class="viewer__title">{{ data.title }}</span>
 
     <div class="viewer__actions">
-      <a class="btn btn--ghost" [href]="download" download>⬇ Descargar</a>
+      @if (!failed()) {
+        <a class="btn btn--ghost" [href]="download" download>⬇ Descargar</a>
+      }
       @if (data.canDelete) {
         <button type="button" class="btn btn--ghost danger" (click)="ref.close('delete')">🗑 Eliminar</button>
       }
