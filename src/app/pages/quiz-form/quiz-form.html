@@ -117,7 +117,7 @@
             </p>
             <div class="field">
               <label for="num">Número de preguntas: {{ numQuestions.value }}</label>
-              <input id="num" type="range" min="3" max="20" [formControl]="numQuestions" />
+              <input id="num" type="range" [min]="minQuestions" [max]="maxQuestions" [formControl]="numQuestions" />
             </div>
             @if (c.topic.touched && c.topic.invalid) {
               <span class="field__error">Primero elige un tema en la sección 2.</span>

@@ -8,7 +8,13 @@ import { ConfirmService } from '../../shared/services/confirm.service'
 import { TopicPicker } from '../../shared/components/topic-picker/topic-picker'
 import { FileUploader } from '../../shared/components/file-uploader/file-uploader'
 import { HasUnsavedChanges } from '../../shared/guards/unsaved-changes.guard'
-import { Quiz, QuizDraft } from '../../shared/models/quiz.model'
+import {
+  DEFAULT_AI_QUESTION_COUNT,
+  MAX_AI_QUESTIONS,
+  MIN_AI_QUESTIONS,
+  Quiz,
+  QuizDraft
+} from '../../shared/models/quiz.model'
 import { UploadEvent } from '../../shared/models/upload.model'
 import {
   QuestionEditor,
@@ -79,9 +85,12 @@ export class QuizForm implements OnInit, HasUnsavedChanges {
     })
   })
 
-  protected readonly numQuestions = this.fb.nonNullable.control(5, [
-    Validators.min(3),
-    Validators.max(20)
+  // Mismo rango que el slider de IA en Nueva partida y el lobby (constantes compartidas)
+  protected readonly minQuestions = MIN_AI_QUESTIONS
+  protected readonly maxQuestions = MAX_AI_QUESTIONS
+  protected readonly numQuestions = this.fb.nonNullable.control(DEFAULT_AI_QUESTION_COUNT, [
+    Validators.min(MIN_AI_QUESTIONS),
+    Validators.max(MAX_AI_QUESTIONS)
   ])
 
   protected get c () {

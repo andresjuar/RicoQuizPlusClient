@@ -59,7 +59,12 @@ export function toSummary(quiz: Quiz): QuizSummary {
     totalSeconds: quiz.questions.reduce((sum, q) => sum + q.timeLimitSeconds, 0),
   };
 }
-/** Cantidades de preguntas que se ofrecen al generar un quiz con IA (la API acepta de 1 a 20) */
-export const AI_QUESTION_COUNTS = [5, 10, 15, 20] as const;
-export const DEFAULT_AI_QUESTION_COUNT = 10;
+
+/**
+ * Rango del slider "Número de preguntas" al generar con IA. Lo comparten el formulario de quiz,
+ * Nueva partida y el lobby, para que los tres ofrezcan lo mismo (la API acepta hasta 20).
+ */
+export const MIN_AI_QUESTIONS = 3;
+export const MAX_AI_QUESTIONS = 20;
+export const DEFAULT_AI_QUESTION_COUNT = 5;
 export const AI_TOPIC_SUGGESTIONS = ['Espacio', 'Historia de México', 'Cine', 'Gastronomía', 'Fútbol'];
