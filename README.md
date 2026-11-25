@@ -267,6 +267,20 @@ Las imágenes se suben a la API propia, que las guarda en Cloudinary. El cliente
 
 **Por qué después de guardar:** la API asocia la imagen por el id del quiz y por el **número de la pregunta** (`/questions/:index/image`). Al crear, el quiz todavía no tiene id; y al editar, si mueves, duplicas o borras preguntas antes de guardar, el número cambia. Subiendo después de guardar, el orden de la API es el mismo que el del formulario. Mientras se suben, el formulario muestra "Subiendo la imagen de la pregunta 2 (1 de 3) · 45%" con *Cancelar subida*. Si cancelas o una falla, el quiz ya quedó guardado y se avisa qué faltó para agregarlo desde *Editar*.
 
+### Ver, descargar y eliminar
+
+Las imágenes se muestran junto al quiz al que pertenecen: la portada en las tarjetas (Explorar, Mis quizzes) y en el detalle, y la imagen de cada pregunta como miniatura en el detalle del quiz (`/quizzes/:id`). Al pulsar cualquiera se abre el visor (`ImageViewerService`) para verla en grande y **descargarla**.
+
+| Acción | Quién | Cómo |
+| --- | --- | --- |
+| Ver y descargar | Cualquiera que pueda ver el quiz | Visor con *Descargar* |
+| Eliminar la portada | Solo el dueño | *Eliminar* en el visor → confirmación → `PUT /quizzes/:id` con `coverImageUrl: ''` |
+| Eliminar la imagen de una pregunta | Solo el dueño | *Eliminar* en el visor → confirmación → `PUT /quizzes/:id` con las preguntas, esa sin `imageUrl` (la API no tiene un DELETE para eso) |
+
+El botón *Eliminar* solo aparece si eres el dueño, y la API lo vuelve a validar: si responde 403, el interceptor avisa y el detalle se recarga.
+
+**Estados:** todas las imágenes subidas usan `<app-image-frame>` (`shared/components/image-frame`): muestra un esqueleto mientras carga y, si la imagen no carga (URL rota, archivo borrado o sin red), el aviso "No se pudo cargar la imagen" en lugar de un hueco vacío; en el visor además hay *Reintentar* y se oculta *Descargar*. Si el quiz no tiene portada se muestra el emoji de su categoría, y las preguntas sin imagen simplemente no muestran miniatura.
+
 ## Tiempo real (Socket.IO)
 
 ### Fuente elegida

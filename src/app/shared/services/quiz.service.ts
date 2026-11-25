@@ -78,6 +78,22 @@ export class QuizService {
     return this.http.put<Quiz>(`${this.url}/${id}`, { coverImageUrl: '' });
   }
 
+  /**
+   * PUT /quizzes/:id — quita la imagen de la pregunta `index` (solo el dueño; la API valida).
+   * La API no tiene un DELETE para la imagen de una pregunta: se reenvían las preguntas igual,
+   * pero esa sin `imageUrl`.
+   */
+  removeQuestionImage(quiz: Quiz, index: number): Observable<Quiz> {
+    const questions = quiz.questions.map((q, i) => ({
+      question: q.question,
+      options: q.options,
+      correctIndex: q.correctIndex,
+      timeLimitSeconds: q.timeLimitSeconds,
+      ...(i !== index && q.imageUrl ? { imageUrl: q.imageUrl } : {}),
+    }));
+    return this.http.put<Quiz>(`${this.url}/${quiz._id}`, { questions });
+  }
+
   generateQuestions(topic: string, numQuestions: number): Observable<Question[]> {
     return this.http
       .post<{ questions: Question[] }>(`${this.url}/generate-questions`, { topic, numQuestions })
