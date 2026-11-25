@@ -31,7 +31,11 @@
           aria-label="Quitar imagen" (click)="removeImage()">✕</button>
       </div>
     }
-    <!-- Subir imágenes queda para otra entrega: solo se muestran las que ya tenga la pregunta -->
+    @if (form().controls.imageUrl.value?.startsWith('blob:')) {
+      <small class="q__pending" style="font-size: var(--fs-xs); color: var(--text-muted)">Se subirá al guardar el quiz.</small>
+    }
+    <app-file-uploader mode="pick" [compact]="true"
+                       (picked)="imagePicked.emit($event)" />
   </div>
 
   <div class="field">

@@ -24,6 +24,7 @@
   &:hover, &:focus-visible, &.is-dragging { border-color: var(--accent); }
   &.is-dragging { background-color: rgb(255 255 255 / 0.06); }
   &.is-disabled { opacity: 0.5; cursor: not-allowed; }
+  &.is-compact { aspect-ratio: auto; min-height: 96px; padding: var(--sp-3); span { font-size: var(--fs-xl); } }
 }
 
 .drop__hint {
@@ -35,18 +36,7 @@
   border-radius: 0 0 var(--radius-md) var(--radius-md);
 }
 
-.progress {
-  height: 8px;
-  border-radius: 999px;
-  background: var(--surface-strong);
-  overflow: hidden;
-}
-
-.progress__bar {
-  height: 100%;
-  background: var(--accent);
-  transition: width 0.15s linear;
-}
+// .progress y .progress__bar son globales (styles/_base.scss): también los usa el formulario de quiz
 
 .status, .file { margin: 0; font-size: var(--fs-xs); color: var(--text-muted); @include truncate; }
 .error { margin: 0; font-size: var(--fs-xs); color: var(--danger); }

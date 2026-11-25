@@ -35,7 +35,7 @@ La fuente elegida y por qué está en el [README](../README.md#tiempo-real-socke
 
 ## Roles dentro de la partida (`*appIsHost` y `*appIsPlayer`)
 
-Las directivas estructurales `*appIsHost` y `*appIsPlayer` muestran un bloque según el rol en la sala (`RoomSession`). Se usan en el lobby (código de sala, cambiar quiz, iniciar partida contra "Esperando al anfitrión"), en la pregunta (contador de respuestas y "Revelar respuesta" contra "Respuesta enviada"), en el marcador ("Siguiente pregunta") y en los resultados ("Jugar de nuevo").
+Las directivas estructurales `*appIsHost` y `*appIsPlayer` muestran un bloque según el rol en la sala (`RoomSession`). Se usan en el lobby (código de sala, cambiar quiz, iniciar partida contra "Esperando al anfitrión"), en la pregunta (imagen de la pregunta, contador de respuestas y "Revelar respuesta" contra "Respuesta enviada"), en el marcador ("Siguiente pregunta") y en los resultados ("Jugar de nuevo").
 
 Ocultar no basta: el servidor valida cada acción (`NOT_HOST`) y nunca manda a los jugadores la respuesta correcta antes del reveal (el host recibe `correctIndex`, los jugadores no).
 
@@ -85,7 +85,7 @@ Namespace `/matches`. Los tipos están en `src/app/shared/models/socket-events.m
 
 ## El quiz de la sala (lobby del host)
 
-- **Elegir o cambiar quiz:** el diálogo del lobby tiene dos pestañas: *Elegir existente* (`PATCH /matches/:id/quiz`) y *Generar con IA*, donde el host escribe el tema y elige cuántas preguntas (5, 10, 15 o 20). La generación usa `POST /matches/:id/generate-quiz`: la API crea el quiz (privado, en *Mis quizzes*) y lo asigna a la sala. Mientras tanto, el lobby muestra "Preparando el quiz…" y desactiva *Iniciar partida*. *Nueva partida* usa el mismo formulario (`<app-ai-quiz-form>`).
+- **Elegir o cambiar quiz:** el diálogo del lobby tiene dos pestañas: *Elegir existente* (`PATCH /matches/:id/quiz`) y *Generar con IA*, donde el host escribe el tema y elige cuántas preguntas con el mismo slider del formulario de quiz (de 3 a 20). La generación usa `POST /matches/:id/generate-quiz`: la API crea el quiz (privado, en *Mis quizzes*) y lo asigna a la sala. Mientras tanto, el lobby muestra "Preparando el quiz…" y desactiva *Iniciar partida*. *Nueva partida* usa el mismo formulario (`<app-ai-quiz-form>`).
 - **QR de acceso:** junto al código, el host ve un QR con el link `/play/<CÓDIGO>` (con el dominio en el que corre la app, local o Netlify). Al escanearlo, el jugador llega directo a la pantalla para poner su nombre. Se genera en el navegador con la librería `qrcode` (componente `RoomQr`), sin mandar el link a ningún servicio externo.
 - **Host que entra por link:** `room:joined_ok` no trae el `matchId`, y la API no tiene un endpoint "partida por código". Si el host no viene de *Nueva partida*, `GameRoom` busca la sala entre sus partidas recientes (`GET /matches/user/:id`, que ya trae el `matchId` y el quiz) y carga el quiz. Si no la encuentra, avisa que no podrá cambiar el quiz, pero la partida se puede jugar igual.
 

@@ -49,18 +49,26 @@ small { font-weight: 400; letter-spacing: 0; text-transform: none; color: var(--
   @include up(md) { grid-template-columns: 220px 1fr; align-items: start; }
 }
 
-.cover {
-  @include flex-center;
+// Portada al crear: se elige aquí y se sube al guardar
+.cover-pick {
+  display: flex;
   flex-direction: column;
   gap: var(--sp-2);
-  aspect-ratio: 16 / 10;
-  border: 2px dashed var(--border);
-  border-radius: var(--radius-md);
-  background-size: cover;
-  background-position: center;
-  color: var(--text-muted);
 
-  span { font-size: var(--fs-2xl); }
+  &__note { font-size: var(--fs-xs); color: var(--text-muted); }
+  &__remove { padding: 0; border: none; background: none; color: var(--danger); font: inherit; text-decoration: underline; cursor: pointer; }
+}
+
+// Progreso de las imágenes que se suben después de guardar
+.uploads {
+  flex-basis: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-2) var(--sp-3);
+  font-size: var(--fs-sm);
+
+  .progress { flex: 1 1 160px; }
 }
 
 textarea.input { resize: vertical; }
@@ -157,6 +165,7 @@ textarea.input { resize: vertical; }
   z-index: 10;
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   justify-content: flex-end;
   gap: var(--sp-2);
   padding: var(--sp-3) var(--sp-4);

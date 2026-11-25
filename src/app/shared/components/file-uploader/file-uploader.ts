@@ -5,19 +5,40 @@ import { MAX_IMAGE_MB, validateImageFile } from '../../validators/image-file.val
 
 type Status = 'idle' | 'selected' | 'uploading' | 'processing' | 'error';
 
+/**
+ * Selector de imagen con clic o arrastrar y soltar, validación de tipo y tamaño y vista previa.
+ *
+ * Dos modos:
+ * - `upload` (default): sube en cuanto el usuario pulsa "Subir imagen", con barra de progreso y
+ *   cancelar. Necesita `upload` (la función del servicio). Lo usa la portada al editar un quiz.
+ * - `pick`: solo valida y emite `picked(file)`; quien lo usa guarda el archivo y lo sube después
+ *   (p. ej. al guardar el quiz, cuando ya existe y tiene id). Lo usan las preguntas y la portada al crear.
+ */
 @Component({
   selector: 'app-file-uploader',
   templateUrl: './file-uploader.html',
   styleUrl: './file-uploader.scss',
+  host: {
+    // Si sueltas la imagen fuera del recuadro, el navegador la abriría y saldrías de la app
+    '(window:dragover)': 'blockOutsideDrop($event)',
+    '(window:drop)': 'blockOutsideDrop($event)',
+  },
 })
 export class FileUploader {
   private readonly destroyRef = inject(DestroyRef);
 
   readonly currentUrl = input<string | null>(null);
-  readonly upload = input.required<(file: File) => Observable<UploadEvent>>();
+  readonly mode = input<'upload' | 'pick'>('upload');
+  /** Solo en modo `upload` */
+  readonly upload = input<((file: File) => Observable<UploadEvent>) | null>(null);
   readonly disabled = input(false);
+  /** Recuadro más bajo, para usarlo dentro de cada pregunta */
+  readonly compact = input(false);
 
+  /** Modo `upload`: URL final que regresó la API */
   readonly uploaded = output<string>();
+  /** Modo `pick`: archivo ya validado */
+  readonly picked = output<File>();
 
   protected readonly status = signal<Status>('idle');
   protected readonly file = signal<File | null>(null);
@@ -44,7 +65,7 @@ export class FileUploader {
   protected onInputChange(input: HTMLInputElement): void {
     const file = input.files?.[0];
     if (file) this.select(file);
-    input.value = ''; 
+    input.value = '';
   }
 
   protected onDrop(event: DragEvent): void {
@@ -60,6 +81,10 @@ export class FileUploader {
     if (!this.disabled() && !this.busy()) this.dragging.set(true);
   }
 
+  protected blockOutsideDrop(event: DragEvent): void {
+    if (event.dataTransfer?.types.includes('Files')) event.preventDefault();
+  }
+
   protected busy(): boolean {
     return this.status() === 'uploading' || this.status() === 'processing';
   }
@@ -71,6 +96,14 @@ export class FileUploader {
       this.status.set(this.file() ? 'selected' : 'error');
       return;
     }
+
+    if (this.mode() === 'pick') {
+      this.error.set(null);
+      this.status.set('idle');
+      this.picked.emit(file);
+      return;
+    }
+
     this.revokePreview();
     this.file.set(file);
     this.previewUrl.set(URL.createObjectURL(file));
@@ -89,13 +122,14 @@ export class FileUploader {
 
   protected send(): void {
     const file = this.file();
-    if (!file) return;
+    const upload = this.upload();
+    if (!file || !upload) return;
 
     this.error.set(null);
     this.progress.set(0);
     this.status.set('uploading');
 
-    this.subscription = this.upload()(file).subscribe({
+    this.subscription = upload(file).subscribe({
       next: event => {
         this.progress.set(event.progress);
         if (event.url) {

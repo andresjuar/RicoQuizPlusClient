@@ -33,12 +33,27 @@ export class QuizService {
   }
 
 
+  /** POST /quizzes/:id/image (multipart, campo "image") — portada del quiz, con progreso */
   uploadCover(id: string, file: File): Observable<UploadEvent> {
+    return this.uploadImage(`${this.url}/${id}/image`, file);
+  }
+
+  /**
+   * POST /quizzes/:id/questions/:index/image — imagen de una pregunta, con progreso.
+   * `index` es la posición de la pregunta en el quiz YA GUARDADO (por eso el formulario sube
+   * estas imágenes justo después de guardar, cuando el orden del servidor es el del formulario).
+   */
+  uploadQuestionImage(id: string, index: number, file: File): Observable<UploadEvent> {
+    return this.uploadImage(`${this.url}/${id}/questions/${index}/image`, file);
+  }
+
+  /** Sube una imagen y traduce los eventos de HttpClient a { progress, url } */
+  private uploadImage(endpoint: string, file: File): Observable<UploadEvent> {
     const body = new FormData();
     body.append('image', file);
 
     return this.http
-      .post<{ imageUrl: string }>(`${this.url}/${id}/image`, body, {
+      .post<{ imageUrl: string }>(endpoint, body, {
         reportProgress: true,
         observe: 'events',
         context: silent(),

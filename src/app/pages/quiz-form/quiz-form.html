@@ -23,9 +23,16 @@
           @if (isEdit()) {
             <app-file-uploader [currentUrl]="coverPreview()" [upload]="uploadCover" (uploaded)="onCoverUploaded($event)" />
           } @else {
-            <div class="cover">
-              <span aria-hidden="true">🖼️</span>
-              <small>Guarda el quiz para agregar su portada</small>
+            <!-- Al crear, el quiz aún no tiene id: la portada se elige aquí y se sube al guardar -->
+            <div class="cover-pick">
+              <app-file-uploader mode="pick" [currentUrl]="pendingCover()?.previewUrl ?? null"
+                                 (picked)="onCoverPicked($event)" />
+              @if (pendingCover()) {
+                <small class="cover-pick__note">
+                  Se subirá al guardar el quiz.
+                  <button type="button" class="cover-pick__remove" (click)="removePendingCover()">Quitar</button>
+                </small>
+              }
             </div>
           }
 
@@ -110,7 +117,7 @@
             </p>
             <div class="field">
               <label for="num">Número de preguntas: {{ numQuestions.value }}</label>
-              <input id="num" type="range" min="3" max="20" [formControl]="numQuestions" />
+              <input id="num" type="range" [min]="minQuestions" [max]="maxQuestions" [formControl]="numQuestions" />
             </div>
             @if (c.topic.touched && c.topic.invalid) {
               <span class="field__error">Primero elige un tema en la sección 2.</span>
@@ -125,7 +132,8 @@
               <app-question-editor
                 [form]="q" [index]="i" [total]="questions.length"
                 (remove)="removeQuestion(i)" (duplicate)="duplicateQuestion(i)"
-                (moveUp)="moveQuestion(i, -1)" (moveDown)="moveQuestion(i, 1)" />
+                (moveUp)="moveQuestion(i, -1)" (moveDown)="moveQuestion(i, 1)"
+                (imagePicked)="onQuestionImage(q, $event)" />
             }
           </div>
           <button type="button" class="btn btn--ghost btn--block add-question" (click)="addQuestion()">
@@ -135,8 +143,17 @@
       </section>
 
       <footer class="actions">
+        @if (uploading(); as u) {
+          <div class="uploads" role="status" aria-live="polite">
+            <span>Subiendo {{ u.label }} ({{ u.current }} de {{ u.total }}) · {{ u.progress }}%</span>
+            <div class="progress" role="progressbar" [attr.aria-valuenow]="u.progress" aria-valuemin="0" aria-valuemax="100">
+              <div class="progress__bar" [style.width.%]="u.progress"></div>
+            </div>
+            <button type="button" class="btn btn--ghost" (click)="cancelUploads()">Cancelar subida</button>
+          </div>
+        }
         <span class="actions__status">{{ form.dirty ? '● Cambios sin guardar' : 'Sin cambios' }}</span>
-        <button type="button" class="btn btn--ghost" (click)="cancel()">Cancelar</button>
+        <button type="button" class="btn btn--ghost" [disabled]="saving()" (click)="cancel()">Cancelar</button>
         <button type="submit" class="btn btn--accent" [disabled]="saving()">
           {{ saving() ? 'Guardando…' : isEdit() ? 'Guardar cambios' : 'Crear quiz' }}
         </button>
