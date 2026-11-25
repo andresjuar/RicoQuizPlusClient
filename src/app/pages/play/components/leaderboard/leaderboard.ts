@@ -1,9 +1,11 @@
 import { Component, input, output } from '@angular/core';
-import { LeaderboardEntry, PlayerRole } from '../../../../shared/models/game.model';
+import { IsHost } from '../../../../shared/directives/is-host';
+import { IsPlayer } from '../../../../shared/directives/is-player';
+import { LeaderboardEntry } from '../../../../shared/models/game.model';
 import { RankRow } from '../rank-row/rank-row';
 
 @Component({
-  imports: [RankRow],
+  imports: [IsHost, IsPlayer, RankRow],
   selector: 'app-leaderboard',
   styleUrl: './leaderboard.scss',
   templateUrl: './leaderboard.html',
@@ -13,9 +15,10 @@ export class Leaderboard {
   readonly entries = input.required<LeaderboardEntry[]>();
   /** socketId del jugador actual, para resaltar su fila */
   readonly mySocketId = input<string | null>(null);
-  readonly role = input<PlayerRole>('player');
   /** Viene como `isFinalRound` en game:leaderboard: cambia el texto del botón */
   readonly isLast = input(false);
+  /** Sin conexión en tiempo real: las acciones se desactivan (GameShell muestra el aviso) */
+  readonly offline = input(false);
 
   /** Solo el host avanza (game:next_question) */
   readonly next = output<void>();

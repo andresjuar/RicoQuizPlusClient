@@ -14,12 +14,9 @@
   </ol>
 
   <footer class="lb__footer">
-    @if (role() === 'host') {
-      <button type="button" class="btn btn--success btn--block" (click)="next.emit()">
-        {{ isLast() ? 'Ver resultados finales' : 'Siguiente pregunta' }}
-      </button>
-    } @else {
-      <p class="lb__wait" role="status">Esperando al anfitrión…</p>
-    }
+    <button *appIsHost type="button" class="btn btn--success btn--block" [disabled]="offline()" (click)="next.emit()">
+      {{ isLast() ? 'Ver resultados finales' : 'Siguiente pregunta' }}
+    </button>
+    <p *appIsPlayer class="lb__wait" role="status">Esperando al anfitrión…</p>
   </footer>
 </section>

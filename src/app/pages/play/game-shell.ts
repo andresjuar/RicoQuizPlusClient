@@ -1,21 +1,19 @@
-import { Component, DestroyRef, computed, inject, input, signal } from '@angular/core';
+import { Component, computed, inject, input, OnInit } from '@angular/core';
 import { Dialog } from '@angular/cdk/dialog';
 import { Router } from '@angular/router';
-import { environment } from '../../../environments/environment';
 import { GameLeaveState } from '../../shared/guards/leave-game.guard';
-import { MOCK_LEADERBOARD, MOCK_PLAYERS, MOCK_QUESTION, MOCK_GAME_QUIZ } from '../../shared/mocks/mock-data';
-import { AnswerCount, AnswerRevealed, GamePhase, PlayerRole } from '../../shared/models/game.model';
+import { GamePhase } from '../../shared/models/game.model';
 import { QuizSummary } from '../../shared/models/quiz.model';
 import { AuthService } from '../../shared/services/auth.service';
-import { ToastService } from '../../shared/services/toast.service';
-import { DevPanel } from './components/dev-panel/dev-panel';
+import { GameRoom } from '../../shared/services/game-room.service';
+import { RoomSession } from '../../shared/services/room-session.service';
 import { FinalResults } from './components/final-results/final-results';
 import { GuestGate } from './components/guest-gate/guest-gate';
 import { Leaderboard } from './components/leaderboard/leaderboard';
 import { Loading } from './components/loading/loading';
 import { Lobby } from './components/lobby/lobby';
 import { Question } from './components/question/question';
-import { QuizPickerData, QuizPickerDialog } from './components/quiz-picker-dialog/quiz-picker-dialog';
+import { QuizPickerData, QuizPickerDialog, QuizPickerResult } from './components/quiz-picker-dialog/quiz-picker-dialog';
 import { Reveal } from './components/reveal/reveal';
 import { RoomStatus } from './components/room-status/room-status';
 
@@ -23,177 +21,85 @@ type StatusTone = 'ok' | 'warn' | 'error' | 'final';
 
 // Fases sin partida en curso: ahí se puede salir sin confirmar
 const PHASES_WITHOUT_CONFIRM: GamePhase[] = ['connecting', 'error', 'guest-gate', 'finished'];
+// Fases en las que todavía no estás dentro de una sala
+const PHASES_WITHOUT_ROOM: GamePhase[] = ['connecting', 'error', 'guest-gate'];
 
 /**
- * Layout de pantalla completa de la partida (sin navbar).
- * Una sola ruta (/play/:code); la fase decide qué vista se muestra.
- * TODO integración: `phase` y los datos mock pasan a derivarse de los eventos de Socket.io.
+ * Layout de pantalla completa de la partida (sin navbar). Una sola ruta (/play/:code);
+ * la fase que decide la vista viene de GameRoom, que a su vez reacciona a los eventos de Socket.IO.
+ *
+ * Provee GameRoom y RoomSession: viven solo mientras estás en la sala, y RoomSession es
+ * lo que leen las directivas *appIsHost / *appIsPlayer de todos los hijos.
  */
 @Component({
-  imports: [
-    DevPanel, FinalResults, GuestGate, Leaderboard, Loading, Lobby, Question, Reveal, RoomStatus,
-  ],
+  imports: [FinalResults, GuestGate, Leaderboard, Loading, Lobby, Question, Reveal, RoomStatus],
+  providers: [GameRoom, RoomSession],
   selector: 'app-game-shell',
   styleUrl: './game-shell.scss',
   templateUrl: './game-shell.html',
 })
-export class GameShell implements GameLeaveState {
-  private readonly toast = inject(ToastService);
+export class GameShell implements GameLeaveState, OnInit {
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
   private readonly dialog = inject(Dialog);
+  protected readonly room = inject(GameRoom);
 
   /** Llega de la ruta /play/:code (withComponentInputBinding) */
   readonly code = input.required<string>();
 
-  protected readonly isDev = !environment.production;
-
-  protected readonly phase = signal<GamePhase>('connecting');
-  // Mock: con sesión se asume que quien entra es el host; el selector dev permite cambiarlo
-  protected readonly role = signal<PlayerRole>(this.auth.isAuthenticated() ? 'host' : 'player');
-
-  // Quiz de la sala: llega desde /room/new por el state de la navegación (sobrevive a recargas); si no, uno de prueba
-  protected readonly quiz = signal<QuizSummary>((history.state?.quiz as QuizSummary | undefined) ?? MOCK_GAME_QUIZ);
-
-  // Datos mock
-  protected readonly players = MOCK_PLAYERS;
-  protected readonly hostSocketId = 's0';
-  protected readonly question = MOCK_QUESTION;
-  protected readonly revealed: AnswerRevealed = {
-    questionIndex: MOCK_QUESTION.questionIndex,
-    correctIndex: MOCK_QUESTION.correctIndex,
-    correctText: MOCK_QUESTION.options[MOCK_QUESTION.correctIndex],
-  };
-  // Solo lo recibe el host (game:answer_count); mock fijo como en el wireframe
-  protected readonly answerCount: AnswerCount = { answeredCount: 7, totalPlayers: 8 };
-  protected readonly leaderboard = MOCK_LEADERBOARD;
-  protected readonly mySocketId = 's2';
-  protected readonly secondsLeft = signal(MOCK_QUESTION.timeLimitSeconds);
-  protected readonly myAnswer = signal<number | null>(null);
-  // Equivale a `isFinalRound` de game:leaderboard; se cambia desde el panel dev
-  protected readonly isLast = signal(false);
-
   protected readonly status = computed<{ label: string; tone: StatusTone }>(() => {
-    switch (this.phase()) {
+    // El estado de la conexión manda sobre la fase
+    switch (this.room.connectionStatus()) {
+      case 'reconnecting': return { label: 'Reconectando…', tone: 'warn' };
+      case 'disconnected':
+        // Sin sala todavía (nombre de invitado o código inválido) no es un problema de conexión
+        if (!['guest-gate', 'error'].includes(this.room.phase())) return { label: 'Sin conexión', tone: 'error' };
+    }
+    switch (this.room.phase()) {
       case 'connecting': return { label: 'Conectando', tone: 'warn' };
-      case 'error': return { label: 'Sin conexión', tone: 'error' };
+      case 'error': return { label: 'Sin sala', tone: 'error' };
       case 'guest-gate': return { label: 'Unirse', tone: 'warn' };
-      case 'lobby': return { label: this.role() === 'host' ? 'Sala abierta · Host' : 'Sala abierta', tone: 'ok' };
+      case 'lobby': return { label: this.room.isHost() ? 'Sala abierta · Host' : 'Sala abierta', tone: 'ok' };
       case 'finished': return { label: 'Final', tone: 'final' };
       default: return { label: 'En juego', tone: 'ok' };
     }
   });
 
-  private connectTimeout?: ReturnType<typeof setTimeout>;
-  private loadingTimeout?: ReturnType<typeof setTimeout>;
-  private revealTimeout?: ReturnType<typeof setTimeout>;
-  private leaderboardTimeout?: ReturnType<typeof setTimeout>;
-  private countdown?: ReturnType<typeof setInterval>;
+  /** Dentro de la sala y sin conexión: se desactivan las acciones y se muestra el aviso */
+  protected readonly offline = computed(
+    () => !PHASES_WITHOUT_ROOM.includes(this.room.phase()) && !this.room.isConnected(),
+  );
 
-  constructor() {
-    inject(DestroyRef).onDestroy(() => this.clearTimers());
-    this.connect();
+  ngOnInit(): void {
+    // quiz y matchId solo llegan cuando el host viene de /room/new
+    const state = history.state as { quiz?: QuizSummary; matchId?: string } | undefined;
+    void this.room.enter(this.code(), { quiz: state?.quiz, matchId: state?.matchId });
   }
 
-  /** Lo consulta leaveGameGuard (Issue 39): confirma la salida solo si hay partida en curso */
+  /** Lo consulta leaveGameGuard: confirma la salida solo si hay partida en curso */
   shouldConfirmLeave(): boolean {
-    return !PHASES_WITHOUT_CONFIRM.includes(this.phase());
+    return !PHASES_WITHOUT_CONFIRM.includes(this.room.phase());
   }
 
-  /** Cambia de fase cancelando cualquier avance automático pendiente (lo usa también el panel dev) */
-  protected goTo(phase: GamePhase): void {
-    this.clearTimers();
-    if (phase === 'question') this.beginQuestion();
-    this.phase.set(phase);
-  }
-
-  protected retry(): void {
-    this.connect();
-  }
-
-  protected onJoined(name: string): void {
-    this.toast.success(`Entraste como ${name}`);
-    this.goTo('lobby');
-  }
-
-  protected onStart(): void {
-    this.goTo('loading');
-    this.loadingTimeout = setTimeout(() => this.goTo('question'), 1500);
-  }
-
-  // Al responder pasa a reveal tras un momento; si no respondes, pasa cuando se acaba el tiempo
-  protected onAnswer(index: number): void {
-    this.myAnswer.set(index);
-    this.revealTimeout = setTimeout(() => this.toReveal(), 1200);
-  }
-
-  // Host: fuerza el reveal sin esperar al timer (game:reveal_answer)
-  protected onRevealNow(): void {
-    this.toReveal();
-  }
-
-  // Host: del leaderboard a la siguiente pregunta o a los resultados (game:next_question)
-  protected onNextQuestion(): void {
-    this.goTo(this.isLast() ? 'finished' : 'question');
-  }
-
-  // Host: elegir otro quiz en el lobby.
-  // TODO integración: PATCH /matches/:id/quiz { quizId } (solo el host y mientras la partida esté en espera)
+  // Host: elegir otro quiz (PATCH /matches/:id/quiz) o generar uno con IA (POST /matches/:id/generate-quiz)
   protected openQuizPicker(): void {
-    const data: QuizPickerData = { currentId: this.quiz()._id };
+    const data: QuizPickerData = { currentId: this.room.quiz()?._id ?? '' };
     this.dialog
-      .open<QuizSummary, QuizPickerData>(QuizPickerDialog, {
+      .open<QuizPickerResult, QuizPickerData>(QuizPickerDialog, {
         data,
         width: '560px',
         maxWidth: 'calc(100vw - 32px)',
         backdropClass: 'rq-backdrop',
         autoFocus: 'dialog',
       })
-      .closed.subscribe(picked => {
-        if (!picked) return;
-        this.quiz.set(picked);
-        this.toast.success(`Ahora la sala usa «${picked.title}»`, 'Quiz cambiado');
+      .closed.subscribe(result => {
+        if (result?.kind === 'existing') this.room.changeQuiz(result.quiz);
+        else if (result?.kind === 'ai') this.room.generateQuiz(result.topic, result.numQuestions);
       });
-  }
-
-  protected onPlayAgain(): void {
-    this.goTo('lobby');
   }
 
   // Con sesión va al historial; como invitado, al inicio
   protected onLeave(): void {
     this.router.navigateByUrl(this.auth.isAuthenticated() ? '/history' : '/');
-  }
-
-  // Simula la conexión al socket: con sesión entra directo al lobby; sin sesión pide un nombre
-  private connect(): void {
-    this.goTo('connecting');
-    this.connectTimeout = setTimeout(
-      () => this.goTo(this.auth.isAuthenticated() ? 'lobby' : 'guest-gate'),
-      1200,
-    );
-  }
-
-  private beginQuestion(): void {
-    this.myAnswer.set(null);
-    this.secondsLeft.set(this.question.timeLimitSeconds);
-    this.countdown = setInterval(() => {
-      this.secondsLeft.update(s => Math.max(0, s - 1));
-      if (this.secondsLeft() === 0) this.toReveal();
-    }, 1000);
-  }
-
-  // Como el backend: el reveal pasa solo al leaderboard a los 2 s
-  private toReveal(): void {
-    this.goTo('reveal');
-    this.leaderboardTimeout = setTimeout(() => this.goTo('leaderboard'), 2000);
-  }
-
-  private clearTimers(): void {
-    clearTimeout(this.connectTimeout);
-    clearTimeout(this.loadingTimeout);
-    clearTimeout(this.revealTimeout);
-    clearTimeout(this.leaderboardTimeout);
-    clearInterval(this.countdown);
   }
 }

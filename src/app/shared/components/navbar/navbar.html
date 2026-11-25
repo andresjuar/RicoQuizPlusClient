@@ -1,8 +1,7 @@
 <header class="nav">
   <div class="nav__inner container">
     <a class="nav__brand" routerLink="/" (click)="closeMenus()">
-      <span class="nav__logo">✦</span>
-      RicoQuiz<span class="nav__plus">+</span>
+      <img class="nav__logo-img" src="logo-ricoquiz.png" alt="RicoQuiz+" width="567" height="148" />
     </a>
 
     <nav class="nav__links" [class.is-open]="menuOpen()">
@@ -18,6 +17,8 @@
     <div class="nav__actions">
       <ng-container *appHasRole="'user'">
         @let user = auth.user();
+        <!-- La conexión en tiempo real solo existe con sesión (se abre al iniciar sesión) -->
+        <app-connection-status />
         <a class="btn btn--ghost hide-mobile" routerLink="/quizzes/new">+ Crear quiz</a>
 
         <div class="nav__user">

@@ -34,3 +34,9 @@ export interface MatchHistoryItem {
   rank: number;
   totalPlayers: number;
 }
+/** El backend genera códigos de 4 letras (A-Z), p. ej. "QWER" */
+export const ROOM_CODE_LENGTH = 4;
+export const ROOM_CODE_PATTERN = /^[A-Z]{4}$/;
+
+/** Normaliza lo que escribe el usuario o llega en la URL: sin espacios y en mayúsculas */
+export const normalizeRoomCode = (code: string): string => code.replace(/\s+/g, '').toUpperCase();

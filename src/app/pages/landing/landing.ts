@@ -1,6 +1,6 @@
 import { Component, inject, signal } from '@angular/core'
 import { rxResource } from '@angular/core/rxjs-interop'
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms'
+import { AbstractControl, FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms'
 import { Router, RouterLink } from '@angular/router'
 import { map } from 'rxjs'
 import { AuthService } from '../../shared/services/auth.service'
@@ -10,6 +10,7 @@ import { ToastService } from '../../shared/services/toast.service'
 import { QuizCard } from '../../shared/components/quiz-card/quiz-card'
 import { CATEGORIES } from '../../shared/models/categories'
 import { QuizSummary } from '../../shared/models/quiz.model'
+import { ROOM_CODE_PATTERN, normalizeRoomCode } from '../../shared/models/match.model'
 import { GoogleButton } from '../../shared/components/google-button/google-button'
 import { ViewState } from '../../shared/components/view-state/view-state'
 
@@ -56,7 +57,8 @@ protected readonly popular = rxResource({
   protected readonly joinError = signal<string | null>(null)
 
   protected readonly joinForm = this.fb.nonNullable.group({
-    code: ['', [Validators.required, Validators.pattern(/^[a-zA-Z]{4}$/)]]
+    // 4 letras; se valida ya normalizado, así "ab cd" o "abcd" también entran
+    code: ['', [Validators.required, (c: AbstractControl<string>) => ROOM_CODE_PATTERN.test(normalizeRoomCode(c.value)) ? null : { roomCode: true }]]
   })
 
   protected join (): void {
@@ -65,7 +67,7 @@ protected readonly popular = rxResource({
       return
     }
 
-    const code = this.joinForm.controls.code.value.toUpperCase()
+    const code = normalizeRoomCode(this.joinForm.controls.code.value)
     this.joining.set(true)
     this.joinError.set(null)
 

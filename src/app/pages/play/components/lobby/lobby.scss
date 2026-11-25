@@ -23,7 +23,9 @@
     background: color-mix(in srgb, var(--success) 18%, transparent);
   }
 
-  &__access { display: flex; gap: var(--sp-4); }
+  // Código y QR lado a lado; en pantallas angostas el QR baja
+  &__access { display: flex; flex-wrap: wrap; align-items: stretch; gap: var(--sp-4); }
+  &__access > .code-card { flex: 1 1 220px; }
 
   &__quiz {
     @include glass;
@@ -123,21 +125,16 @@
 }
 
 // El QR solo aparece en pantallas amplias, como en el wireframe de desktop
-.qr {
-  display: none;
-  flex-direction: column;
-  width: 180px;
-  flex-shrink: 0;
-  color: var(--accent);
-  border: 1.5px dashed var(--border);
-  border-radius: var(--radius-lg);
-  background: var(--surface);
-  span { font-size: var(--fs-xs); color: var(--text-muted); }
-
-  @include up(md) { @include flex-center(var(--sp-2)); }
-}
-
 @keyframes pulse {
   0%, 100% { opacity: 1; transform: scale(1); }
   50% { opacity: 0.35; transform: scale(0.7); }
+}
+.lobby__empty { margin: 0; font-size: var(--fs-sm); color: var(--text-muted); }
+
+.lobby__quiz-title--busy {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
 }

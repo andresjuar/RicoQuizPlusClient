@@ -218,3 +218,20 @@ button, input, select, textarea { font: inherit; color: inherit; }
   h1 { font-size: var(--fs-2xl); line-height: 1.15; }
   &__actions { display: flex; flex-wrap: wrap; gap: var(--sp-2); }
 }
+
+// Spinner chico para estados "cargando" en línea (lobby, aviso sin conexión)
+.spinner {
+  flex-shrink: 0;
+  width: 14px;
+  height: 14px;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .spinner { animation: none; }
+}

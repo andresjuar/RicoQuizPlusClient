@@ -3,19 +3,27 @@ import { DIALOG_DATA, DialogRef } from '@angular/cdk/dialog';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { forkJoin, map } from 'rxjs';
+import { AiQuizForm, AiQuizRequest } from '../../../../shared/components/ai-quiz-form/ai-quiz-form';
 import { QuizSummary } from '../../../../shared/models/quiz.model';
 import { QuizService } from '../../../../shared/services/quiz.service';
 
 export interface QuizPickerData {
-  /** Quiz que tiene la sala ahora (aparece marcado como "Actual") */
+  /** Quiz que tiene la sala ahora (aparece marcado como "Actual"); '' si no tiene */
   currentId: string;
 }
 
-const normalize = (s: string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+/** Lo que eligió el host: un quiz existente o generar uno nuevo con IA (lo hace GameRoom) */
+export type QuizPickerResult =
+  | { kind: 'existing'; quiz: QuizSummary }
+  | ({ kind: 'ai' } & AiQuizRequest);
 
-/** Diálogo para que el host elija otro quiz mientras está en el lobby. Cierra con el Quiz elegido. */
+type Tab = 'existing' | 'ai';
+
+const normalize = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+
+/** Diálogo para que el host elija el quiz de la sala desde el lobby, o genere uno con IA. */
 @Component({
-  imports: [ReactiveFormsModule],
+  imports: [AiQuizForm, ReactiveFormsModule],
   selector: 'app-quiz-picker-dialog',
   styleUrl: './quiz-picker-dialog.scss',
   templateUrl: './quiz-picker-dialog.html',
@@ -23,9 +31,10 @@ const normalize = (s: string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, 
 export class QuizPickerDialog {
   private readonly quizService = inject(QuizService);
   private readonly data = inject<QuizPickerData>(DIALOG_DATA);
-  protected readonly ref = inject<DialogRef<QuizSummary>>(DialogRef);
+  protected readonly ref = inject<DialogRef<QuizPickerResult>>(DialogRef);
 
   protected readonly currentId = this.data.currentId;
+  protected readonly tab = signal<Tab>('existing');
 
   // Mis quizzes + públicos, sin repetir (undefined mientras carga)
   private readonly loaded = toSignal(
@@ -60,6 +69,11 @@ export class QuizPickerDialog {
 
   protected confirm(): void {
     const p = this.picked();
-    if (p && this.canConfirm()) this.ref.close(p);
+    if (p && this.canConfirm()) this.ref.close({ kind: 'existing', quiz: p });
+  }
+
+  /** La generación tarda: el diálogo se cierra y el lobby muestra "Preparando el quiz…" */
+  protected onGenerate(request: AiQuizRequest): void {
+    this.ref.close({ kind: 'ai', ...request });
   }
 }

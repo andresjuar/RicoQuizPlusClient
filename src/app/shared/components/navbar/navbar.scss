@@ -19,21 +19,15 @@
   &__brand {
     display: flex;
     align-items: center;
-    gap: var(--sp-2);
-    font-size: var(--fs-lg);
-    font-weight: 700;
+    flex-shrink: 0;
   }
 
-  &__logo {
-    @include flex-center;
-    width: 32px;
-    height: 32px;
-    border-radius: var(--radius-sm);
-    background: var(--primary-gradient);
-    font-size: var(--fs-sm);
+  // Logo PNG recortado (567x148): se escala por alto y el ancho se ajusta solo
+  &__logo-img {
+    display: block;
+    height: 36px;
+    width: auto;
   }
-
-  &__plus { color: var(--accent); }
 
   // En móvil es un panel desplegable; desde md, una fila
   &__links {

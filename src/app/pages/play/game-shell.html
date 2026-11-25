@@ -1,60 +1,60 @@
 <div class="shell">
   <header class="shell__bar">
-    <span class="brand">
-      <span class="brand__mark" aria-hidden="true">
-        <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
-          <path d="M12 2l2.2 6.3L20.5 10l-6.3 1.7L12 18l-2.2-6.3L3.5 10l6.3-1.7L12 2z" />
-        </svg>
-      </span>
-      RicoQuiz<b>+</b>
-    </span>
+    <img class="brand" src="logo-ricoquiz.png" alt="RicoQuiz+" width="567" height="148" />
 
-    <span class="status" [attr.data-tone]="status().tone">
+    <span class="status" [attr.data-tone]="status().tone" role="status" aria-live="polite">
       <span class="status__dot" aria-hidden="true"></span>
       {{ status().label }}
     </span>
   </header>
 
+  @if (offline()) {
+    <div class="offline" role="alert">
+      <span class="spinner" aria-hidden="true"></span>
+      Sin conexión, reconectando… Las acciones se activan de nuevo al volver la conexión.
+    </div>
+  }
+
   <main class="shell__content">
-    @switch (phase()) {
+    @switch (room.phase()) {
       @case ('connecting') {
         <app-room-status kind="connecting" />
       }
       @case ('error') {
-        <app-room-status kind="error" (retry)="retry()" />
+        <app-room-status kind="error" [message]="room.errorMessage() ?? undefined" (retry)="room.retry()" />
       }
       @case ('guest-gate') {
-        <app-guest-gate [code]="code()" (joined)="onJoined($event)" />
+        <app-guest-gate [code]="code()" (joined)="room.join($event)" />
       }
       @case ('lobby') {
-        <app-lobby [role]="role()" [code]="code()" [players]="players" [hostSocketId]="hostSocketId"
-                   [quiz]="quiz()" (start)="onStart()" (changeQuiz)="openQuizPicker()" />
+        <app-lobby [code]="code()" [players]="room.players()" [quiz]="room.quiz()" [quizBusy]="room.quizBusy()"
+                   [offline]="offline()" (start)="room.start()" (changeQuiz)="openQuizPicker()" />
       }
       @case ('loading') {
         <app-loading />
       }
       @case ('question') {
-        <app-question [question]="question" [secondsLeft]="secondsLeft()" [myAnswer]="myAnswer()"
-                      [role]="role()" [answerCount]="answerCount"
-                      (answer)="onAnswer($event)" (reveal)="onRevealNow()" />
+        @if (room.question(); as q) {
+          <app-question [question]="q" [secondsLeft]="room.secondsLeft()" [myAnswer]="room.myAnswer()"
+                        [answerCount]="room.answerCount()" [offline]="offline()"
+                        (answer)="room.answer($event)" (reveal)="room.revealNow()" />
+        }
       }
       @case ('reveal') {
-        <app-reveal [question]="question" [revealed]="revealed" [myAnswer]="myAnswer()" [role]="role()" />
+        @if (room.question(); as q) {
+          @if (room.revealed(); as r) {
+            <app-reveal [question]="q" [revealed]="r" [myAnswer]="room.myAnswer()" />
+          }
+        }
       }
       @case ('leaderboard') {
-        <app-leaderboard [entries]="leaderboard" [mySocketId]="mySocketId" [role]="role()"
-                         [isLast]="isLast()" (next)="onNextQuestion()" />
+        <app-leaderboard [entries]="room.leaderboard()" [mySocketId]="room.mySocketId()"
+                         [isLast]="room.isFinalRound()" [offline]="offline()" (next)="room.nextQuestion()" />
       }
       @case ('finished') {
-        <app-final-results [entries]="leaderboard" [mySocketId]="mySocketId" [role]="role()"
-                           (playAgain)="onPlayAgain()" (leave)="onLeave()" />
+        <app-final-results [entries]="room.leaderboard()" [mySocketId]="room.mySocketId()" [offline]="offline()"
+                           (playAgain)="room.playAgain()" (leave)="onLeave()" />
       }
     }
   </main>
 </div>
-
-@if (isDev) {
-  <app-dev-panel [phase]="phase()" [role]="role()" [myAnswer]="myAnswer()" [isLast]="isLast()"
-                 (phaseChange)="goTo($event)" (roleChange)="role.set($event)"
-                 (answerChange)="myAnswer.set($event)" (isLastChange)="isLast.set($event)" />
-}

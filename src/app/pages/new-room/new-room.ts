@@ -1,27 +1,21 @@
 import { Component, DestroyRef, computed, inject, input, linkedSignal, signal } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
-import { AbstractControl, FormControl, ReactiveFormsModule, ValidationErrors } from '@angular/forms';
+import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { forkJoin, map } from 'rxjs';
+import { AiQuizForm, AiQuizRequest } from '../../shared/components/ai-quiz-form/ai-quiz-form';
 import { QuizCard } from '../../shared/components/quiz-card/quiz-card';
 import { QuizSummary, toSummary } from '../../shared/models/quiz.model';
+import { MatchService } from '../../shared/services/match.service';
 import { QuizService } from '../../shared/services/quiz.service';
 import { ToastService } from '../../shared/services/toast.service';
 
 type Mode = 'existing' | 'ai';
 
-const AI_QUESTION_COUNT = 10;
-const MOCK_ROOM_CODE = '482190';
-
 const normalize = (s: string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
 
-function topicLength(control: AbstractControl<string>): ValidationErrors | null {
-  const len = control.value.trim().length;
-  return len >= 3 && len <= 60 ? null : { topic: true };
-}
-
 @Component({
-  imports: [ReactiveFormsModule, RouterLink, QuizCard],
+  imports: [AiQuizForm, ReactiveFormsModule, RouterLink, QuizCard],
   selector: 'app-new-room',
   styleUrl: './new-room.scss',
   templateUrl: './new-room.html',
@@ -30,12 +24,12 @@ export class NewRoom {
   private readonly router = inject(Router);
   private readonly toast = inject(ToastService);
   private readonly quizService = inject(QuizService);
+  private readonly matchService = inject(MatchService);
   private readonly destroyRef = inject(DestroyRef);
 
   /** ?quiz=<id>: lo mandan explorar, mis quizzes, dashboard y landing al pulsar "Jugar" */
   readonly quiz = input<string>();
 
-  protected readonly suggestions = ['Espacio', 'Historia de México', 'Cine', 'Gastronomía', 'Fútbol'];
   protected readonly mode = signal<Mode>('existing');
 
   // Mis quizzes + públicos, sin repetir (undefined mientras carga)
@@ -64,10 +58,10 @@ export class NewRoom {
     );
   });
 
-  // Generación con IA
-  protected readonly topic = new FormControl('', { nonNullable: true, validators: [topicLength] });
+  // Generación con IA (el formulario de tema y número de preguntas es <app-ai-quiz-form>)
   protected readonly generating = signal(false);
   protected readonly generated = signal<QuizSummary | null>(null);
+  protected readonly creating = signal(false);
 
   protected plural(n: number): string {
     return `${n} ${n === 1 ? 'pregunta' : 'preguntas'}`;
@@ -81,23 +75,13 @@ export class NewRoom {
     this.selected.set(q);
   }
 
-  protected useSuggestion(topic: string): void {
-    this.topic.setValue(topic);
-  }
-
-  protected onGenerate(event: Event): void {
-    event.preventDefault();
-    if (this.topic.invalid) {
-      this.topic.markAsTouched();
-      return;
-    }
-    const topic = this.topic.value.trim();
+  protected onGenerate({ topic, numQuestions }: AiQuizRequest): void {
     this.generating.set(true);
     this.generated.set(null);
 
     // POST /quizzes/generate: la API genera las preguntas y guarda el quiz (privado) en Mis quizzes
     this.quizService
-      .generate(topic, AI_QUESTION_COUNT)
+      .generate(topic, numQuestions)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: created => {
@@ -118,9 +102,21 @@ export class NewRoom {
   }
 
   protected createRoom(): void {
-    if (!this.selected()) return;
-    this.toast.success('Comparte el código con tus jugadores', 'Sala creada');
-    // El quiz viaja en el state de la navegación para que el lobby lo muestre (y el host pueda cambiarlo)
-    this.router.navigate(['/play', MOCK_ROOM_CODE], { state: { quiz: this.selected() } });
+    const quiz = this.selected();
+    if (!quiz || this.creating()) return;
+    this.creating.set(true);
+
+    // POST /matches: la API genera el roomCode y deja al usuario como host
+    this.matchService
+      .create(quiz._id)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: match => {
+          this.toast.success('Comparte el código con tus jugadores', 'Sala creada');
+          // quiz y matchId viajan en el state de la navegación: el lobby muestra el quiz y el host puede cambiarlo
+          this.router.navigate(['/play', match.roomCode], { state: { quiz, matchId: match._id } });
+        },
+        error: () => this.creating.set(false), // el mensaje lo muestra el interceptor
+      });
   }
 }

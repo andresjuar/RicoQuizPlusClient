@@ -19,21 +19,9 @@
 }
 
 .brand {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--sp-2);
-  font-weight: 600;
-
-  b { color: var(--accent); }
-
-  &__mark {
-    @include flex-center;
-    width: 28px;
-    height: 28px;
-    border-radius: var(--radius-sm);
-    background: var(--primary-gradient);
-    color: #fff;
-  }
+  display: block;
+  height: 30px;
+  width: auto;
 }
 
 .status {
@@ -56,4 +44,18 @@
   &[data-tone='final'] { --tone: var(--accent); }
 
   &__dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+}
+// Aviso de "sin conexión" mientras estás en la sala (las acciones quedan desactivadas)
+.offline {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-2);
+  padding: var(--sp-2) var(--sp-4);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  text-align: center;
+  color: var(--warning);
+  background: color-mix(in srgb, var(--warning) 14%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--warning) 30%, transparent);
 }

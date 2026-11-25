@@ -14,7 +14,9 @@ El cliente consume la API propia de RicoQuiz+ (Express + MongoDB), construida en
 | Dashboard e historial de partidas | Listo |
 | Manejo centralizado de errores y estados de carga | Listo |
 | Autenticación y roles: sesión con JWT, guardias de ruta, directiva *appHasRole y vistas 403/404 | Listo |
-| Partida en vivo por Socket.io | Pendiente: la pantalla de juego usa datos simulados (`shared/mocks`) |
+| Partida en vivo por Socket.IO: crear sala, unirse, jugar, marcador, fin y jugar de nuevo | Listo (ver [Tiempo real](#tiempo-real-socketio)) |
+| Indicador de conexión (navbar y partida), reconexión automática y resincronización | Listo |
+| Subida, visualización y descarga de archivos | Pendiente |
 | Despliegue del cliente en Netlify | Listo |
 | ESLint y CI | Pendiente |
 
@@ -50,13 +52,16 @@ Abre `http://localhost:4200/`. La app recarga sola al guardar cambios.
 
 ### Variables de entorno
 
-Viven en `src/environments/`:
+Viven en `src/environments/` (plantilla: `environment.example.ts`); de ahí las lee la app.
 
-| Variable | Para qué sirve |
-| --- | --- |
-| `apiUrl` | URL base de la API REST |
-| `socketUrl` y `socketNamespace` | Servidor y namespace de Socket.io (`/matches`) |
-| `googleClientId` | Client ID de Google Identity Services |
+> **Sobre el `.env.example`:** el repo incluye un [`.env.example`](./.env.example), pero **la app no lo usa para nada**: Angular no lee archivos `.env`. Solo está para cumplir con lo que pide la entrega (que la URL del servidor de tiempo real aparezca en un `.env.example`) y para dejar claro qué variables existen. Si cambias un valor, cámbialo en `environment.ts` / `environment.development.ts`. Esta es la equivalencia:
+
+| `.env.example` | `environment` | Para qué sirve |
+| --- | --- | --- |
+| `API_URL` | `apiUrl` | URL base de la API REST |
+| `SOCKET_URL` | `socketUrl` | Servidor de tiempo real (Socket.IO). Hoy es la misma API |
+| `SOCKET_NAMESPACE` | `socketNamespace` | Namespace de las partidas (`/matches`) |
+| `GOOGLE_CLIENT_ID` | `googleClientId` | Client ID de Google Identity Services |
 
 Para trabajar contra una API local, cambia `apiUrl` en `environment.development.ts`. La API permite el origen `http://localhost:4200` por CORS. Si publicas el cliente en otro dominio, ese dominio debe agregarse a `CORS_ORIGIN` en la API y a los orígenes autorizados de Google Cloud Console.
 
@@ -87,12 +92,11 @@ src/app/
   pages/            # Una carpeta por página (explore, quiz-detail, my-quizzes, history, ...)
   shared/
     components/     # quiz-card, match-row, paginator, view-state, confirm-dialog, ...
-    services/       # QuizService, HistoryService, AuthService, ToastService, ConfirmService, ...
-    models/         # Interfaces tipadas (Quiz, QuizSummary, Page<T>, Match, User, ...)
+    services/       # QuizService, MatchService, AuthService, SocketService, GameRoom, RoomSession, ...
+    models/         # Interfaces tipadas (Quiz, Page<T>, Match, User, game.model, socket-events.model, ...)
     interceptors/   # auth.interceptor (token) y error.interceptor (errores HTTP)
-    directives/     # has-role (*appHasRole), copy-to-clipboard
+    directives/     # *appHasRole, *appIsHost, *appIsPlayer, copy-to-clipboard
     guards/         # authGuard, guestGuard, ownerGuard, leaveGameGuard, unsavedChangesGuard
-    mocks/          # Datos simulados de la partida en vivo (temporal)
 ```
 
 ## Autenticación y permisos
@@ -138,7 +142,7 @@ Hay dos roles y se obtienen **de la sesión**: sin sesión eres `invitado` y con
 
 `host` y `player` (`PlayerRole` en la pantalla de partida) son roles **del juego**, no de la aplicación.
 
-> Sólo para aclararlo: en esta entrega los permisos se resuelven con rutas autenticadas y *ownership* de quizzes. El rol `host`, que podrá expulsar jugadores, se implementará en la siguiente entrega junto con Socket.io. Será un rol de runtime: lo tiene quien crea la sala, mientras la sala existe. Las directivas `*appIsHost` y `*appIsPlayer` (con `RoomSession`) ya están creadas para esa entrega.
+Dentro de una partida, `host` es un rol de runtime: lo tiene quien creó la sala, mientras la sala existe, y **lo asigna el servidor** en `room:joined_ok` (el cliente nunca lo elige). Ver [Roles dentro de la partida](./docs/tiempo-real.md#roles-dentro-de-la-partida-appishost-y-appisplayer).
 
 ### Guardias de ruta
 
@@ -212,8 +216,13 @@ Todas las respuestas de error tienen la forma `{ "message": string, "errores"?: 
 | DELETE | `/quizzes/:id` | Bearer (dueño) | Eliminar quiz |
 | POST | `/quizzes/generate-questions` | Bearer | Preguntas con IA (sin guardar) |
 | POST | `/quizzes/generate` | Bearer | Generar y guardar un quiz con IA (Nueva partida) |
-| GET | `/matches/user/:userId` | — | Historial |
+| GET | `/matches/user/:userId` | — | Historial, y encontrar la partida de la sala cuando el host entra por link |
 | GET | `/matches/rooms/:code/exists` | — | Unirse con código |
+| POST | `/matches` | Bearer | Crear sala (Nueva partida); regresa el `roomCode` |
+| PATCH | `/matches/:id/quiz` | Bearer (host) | Cambiar el quiz de la sala en el lobby |
+| POST | `/matches/:id/generate-quiz` | Bearer (host) | Generar con IA (tema y número de preguntas) el quiz de la sala desde el lobby |
+
+Los eventos de Socket.IO están en [docs/tiempo-real.md](./docs/tiempo-real.md#contrato-de-eventos).
 
 ### Modelos
 
@@ -243,6 +252,30 @@ Todas las respuestas de error tienen la forma `{ "message": string, "errores"?: 
 - **Errores HTTP:** se manejan en un solo lugar, `src/app/shared/interceptors/error.interceptor.ts`. Normaliza el error a `ApiError` y muestra el toast; en un 401 cierra la sesión y redirige al login, y en un 403 avisa sin cerrar la sesión. Los componentes no muestran mensajes de error propios.
 - **Estados de carga, error y vacío:** los resuelve el componente `<app-view-state>` sobre un `rxResource`. La página solo pinta el contenido cuando el estado es "listo", porque `resource.value()` lanza si el recurso está en error.
 - **Peticiones HTTP:** solo viven en los servicios (`shared/services`); los componentes nunca usan `HttpClient`.
+
+## Tiempo real (Socket.IO)
+
+### Fuente elegida
+
+Se usa el **canal Socket.IO de la API propia** (namespace `/matches`), no un BaaS ni un servidor de prueba. Por qué:
+
+- El motor del juego (preguntas, temporizador, puntaje por velocidad, marcador) ya vive en el backend y es la fuente de verdad: el cliente no puede calcular puntos ni ver la respuesta correcta antes de tiempo. Con Supabase o Firebase habría que duplicar esa lógica o exponer datos que los jugadores no deben ver.
+- El mismo JWT de la Entrega 3 autentica el socket, así que no hay un segundo sistema de sesión.
+- Socket.IO ya resuelve la reconexión automática y el fallback a long-polling.
+
+Como se usa el servidor real, **no hay `mock-server/`**: para probar basta con `npm start` (apunta a la API de Render). Si se quiere una API local, se levanta el backend (`npm run dev` en el repo de la API) y se cambian `apiUrl` y `socketUrl` en `environment.development.ts`.
+
+### Contrato de eventos y funcionamiento
+
+Todo el detalle está en **[docs/tiempo-real.md](./docs/tiempo-real.md)**. En resumen, el cliente mantiene **una sola conexión** de Socket.IO para toda la app (`SocketService`), que se abre al iniciar sesión con el JWT y se cierra al cerrarla. La partida en curso (`GameRoom`) escucha los eventos del servidor y actualiza la interfaz sin recargar: la lista de jugadores del lobby, las preguntas, la cuenta regresiva, el reveal, el marcador y los resultados. El documento incluye:
+
+- Qué hace cada pieza (`SocketService`, `GameRoom`, `RoomSession`) y en qué archivo está.
+- Cuándo se abre y se cierra la conexión, y cómo viaja el token.
+- El indicador de conexión, la reconexión automática, la resincronización al reconectar y la limpieza de listeners.
+- Cómo se usan `*appIsHost` y `*appIsPlayer` para restringir lo que ve cada rol.
+- El flujo de una partida paso a paso.
+- **Las tablas de eventos**: nombre, payload y si lo envía o lo recibe el cliente.
+- Cómo probarlo con varios jugadores.
 
 ## Despliegue
 
