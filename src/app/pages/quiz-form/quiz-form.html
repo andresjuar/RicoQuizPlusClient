@@ -19,13 +19,15 @@
         </header>
 
         <div class="info-grid">
-          <!-- Subir portada queda para otra entrega: solo se muestra la que ya tenga el quiz -->
-          <div class="cover" [style.background-image]="coverPreview() ? 'url(' + coverPreview() + ')' : null">
-            @if (!coverPreview()) {
+          <!-- La portada se sube al quiz ya guardado (la API la asocia por :id) -->
+          @if (isEdit()) {
+            <app-file-uploader [currentUrl]="coverPreview()" [upload]="uploadCover" (uploaded)="onCoverUploaded($event)" />
+          } @else {
+            <div class="cover">
               <span aria-hidden="true">🖼️</span>
-              <small>Portada · próximamente</small>
-            }
-          </div>
+              <small>Guarda el quiz para agregar su portada</small>
+            </div>
+          }
 
           <div class="stack">
             <div class="field">
@@ -141,4 +143,4 @@
       </footer>
     </form>
   }
-</div>
+</div>

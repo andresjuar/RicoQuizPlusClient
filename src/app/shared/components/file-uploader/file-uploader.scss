@@ -1,0 +1,54 @@
+@use 'mixins' as *;
+
+:host { display: block; }
+
+.uploader { display: flex; flex-direction: column; gap: var(--sp-2); }
+
+.drop {
+  @include flex-center;
+  position: relative;
+  flex-direction: column;
+  gap: var(--sp-2);
+  aspect-ratio: 16 / 10;
+  border: 2px dashed var(--border);
+  border-radius: var(--radius-md);
+  background-size: cover;
+  background-position: center;
+  color: var(--text-muted);
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.15s, background-color 0.15s;
+
+  span { font-size: var(--fs-2xl); }
+
+  &:hover, &:focus-visible, &.is-dragging { border-color: var(--accent); }
+  &.is-dragging { background-color: rgb(255 255 255 / 0.06); }
+  &.is-disabled { opacity: 0.5; cursor: not-allowed; }
+}
+
+.drop__hint {
+  position: absolute;
+  inset: auto 0 0;
+  padding: var(--sp-1) var(--sp-2);
+  background: rgb(0 0 0 / 0.55);
+  color: var(--text);
+  border-radius: 0 0 var(--radius-md) var(--radius-md);
+}
+
+.progress {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--surface-strong);
+  overflow: hidden;
+}
+
+.progress__bar {
+  height: 100%;
+  background: var(--accent);
+  transition: width 0.15s linear;
+}
+
+.status, .file { margin: 0; font-size: var(--fs-xs); color: var(--text-muted); @include truncate; }
+.error { margin: 0; font-size: var(--fs-xs); color: var(--danger); }
+
+.actions { display: flex; gap: var(--sp-2); justify-content: flex-end; }

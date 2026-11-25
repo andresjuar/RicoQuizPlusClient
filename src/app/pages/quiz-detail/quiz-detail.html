@@ -11,7 +11,9 @@
     <header class="hero card">
       <div class="hero__cover" [style.--tone]="category().color">
         @if (q.coverImageUrl) {
-          <img [src]="q.coverImageUrl" [alt]="q.title" />
+          <button type="button" class="hero__cover-btn" aria-label="Ver portada en grande" (click)="viewCover(q)">
+            <img [src]="q.coverImageUrl" [alt]="q.title" />
+          </button>
         } @else {
           <span class="hero__emoji" aria-hidden="true">{{ category().emoji }}</span>
         }
