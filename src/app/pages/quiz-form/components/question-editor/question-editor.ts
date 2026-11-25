@@ -1,5 +1,6 @@
 import { Component, input, output } from '@angular/core';
 import { FormArray, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FileUploader } from '../../../../shared/components/file-uploader/file-uploader';
 import { uniqueOptions } from '../../../../shared/validators/unique-options.validator';
 
 export const MIN_OPTIONS = 2;
@@ -44,7 +45,7 @@ export function createQuestionForm(q?: Partial<QuestionValue>): QuestionForm {
 }
 
 @Component({
-  imports: [ReactiveFormsModule],
+  imports: [FileUploader, ReactiveFormsModule],
   selector: 'app-question-editor',
   templateUrl: './question-editor.html',
   styleUrl: './question-editor.scss',
@@ -58,6 +59,8 @@ export class QuestionEditor {
   readonly duplicate = output<void>();
   readonly moveUp = output<void>();
   readonly moveDown = output<void>();
+  /** Imagen ya validada; QuizForm la guarda y la sube al guardar el quiz */
+  readonly imagePicked = output<File>();
 
   protected readonly icons = ['▲', '◆', '●', '■'];
   protected readonly timeOptions = [5, 10, 20, 30, 60, 90, 120];

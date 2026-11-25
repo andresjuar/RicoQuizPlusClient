@@ -12,9 +12,12 @@
 
   <h1 class="q__text">{{ question().question }}</h1>
 
-  @if (question().imageUrl; as url) {
-    <img class="q__image" [src]="url" alt="" />
-  }
+  <!-- La imagen solo va en la pantalla del host (la que se proyecta); los jugadores solo eligen opción -->
+  <ng-container *appIsHost>
+    @if (question().imageUrl; as url) {
+      <img class="q__image" [src]="url" alt="Imagen de la pregunta" />
+    }
+  </ng-container>
 
   <div class="q__options">
     @for (opt of question().options; track $index) {

@@ -16,7 +16,7 @@ El cliente consume la API propia de RicoQuiz+ (Express + MongoDB), construida en
 | Autenticación y roles: sesión con JWT, guardias de ruta, directiva *appHasRole y vistas 403/404 | Listo |
 | Partida en vivo por Socket.IO: crear sala, unirse, jugar, marcador, fin y jugar de nuevo | Listo (ver [Tiempo real](#tiempo-real-socketio)) |
 | Indicador de conexión (navbar y partida), reconexión automática y resincronización | Listo |
-| Subida, visualización y descarga de archivos | Pendiente |
+| Imágenes: portada del quiz e imagen de cada pregunta (arrastrar y soltar, validación, vista previa, progreso y cancelar) | Listo (ver [Imágenes](#imágenes-portada-y-preguntas)) |
 | Despliegue del cliente en Netlify | Listo |
 | ESLint y CI | Pendiente |
 
@@ -214,6 +214,8 @@ Todas las respuestas de error tienen la forma `{ "message": string, "errores"?: 
 | POST | `/quizzes` | Bearer | Crear quiz |
 | PUT | `/quizzes/:id` | Bearer (dueño) | Editar quiz |
 | DELETE | `/quizzes/:id` | Bearer (dueño) | Eliminar quiz |
+| POST | `/quizzes/:id/image` | Bearer (dueño) | Subir la portada (multipart, campo `image`) |
+| POST | `/quizzes/:id/questions/:index/image` | Bearer (dueño) | Subir la imagen de una pregunta (multipart, campo `image`) |
 | POST | `/quizzes/generate-questions` | Bearer | Preguntas con IA (sin guardar) |
 | POST | `/quizzes/generate` | Bearer | Generar y guardar un quiz con IA (Nueva partida) |
 | GET | `/matches/user/:userId` | — | Historial, y encontrar la partida de la sala cuando el host entra por link |
@@ -252,6 +254,18 @@ Todas las respuestas de error tienen la forma `{ "message": string, "errores"?: 
 - **Errores HTTP:** se manejan en un solo lugar, `src/app/shared/interceptors/error.interceptor.ts`. Normaliza el error a `ApiError` y muestra el toast; en un 401 cierra la sesión y redirige al login, y en un 403 avisa sin cerrar la sesión. Los componentes no muestran mensajes de error propios.
 - **Estados de carga, error y vacío:** los resuelve el componente `<app-view-state>` sobre un `rxResource`. La página solo pinta el contenido cuando el estado es "listo", porque `resource.value()` lanza si el recurso está en error.
 - **Peticiones HTTP:** solo viven en los servicios (`shared/services`); los componentes nunca usan `HttpClient`.
+
+## Imágenes (portada y preguntas)
+
+Las imágenes se suben a la API propia, que las guarda en Cloudinary. El cliente usa un solo componente, `<app-file-uploader>` (`shared/components/file-uploader`): se elige la imagen con clic o arrastrándola, se valida el tipo (JPG, PNG, WEBP o GIF) y el tamaño (máx. 5 MB) antes de enviarla, con un mensaje claro si no cumple, y se muestra una vista previa. Si sueltas un archivo fuera del recuadro, no pasa nada (el navegador no lo abre). Las peticiones viven en `QuizService` y llevan el token por el interceptor; el progreso sale de `HttpClient` con `reportProgress` y `observe: 'events'` (por eso `app.config.ts` no usa `withFetch()`, que no reporta el progreso de subida).
+
+| Dónde | Cuándo se sube |
+| --- | --- |
+| Portada, al **editar** un quiz | Al pulsar *Subir imagen*, con barra de progreso y *Cancelar* |
+| Portada, al **crear** un quiz | Se elige en el formulario y se sube justo después de guardar |
+| Imagen de cada **pregunta** (crear o editar) | Se elige en la pregunta y se sube justo después de guardar |
+
+**Por qué después de guardar:** la API asocia la imagen por el id del quiz y por el **número de la pregunta** (`/questions/:index/image`). Al crear, el quiz todavía no tiene id; y al editar, si mueves, duplicas o borras preguntas antes de guardar, el número cambia. Subiendo después de guardar, el orden de la API es el mismo que el del formulario. Mientras se suben, el formulario muestra "Subiendo la imagen de la pregunta 2 (1 de 3) · 45%" con *Cancelar subida*. Si cancelas o una falla, el quiz ya quedó guardado y se avisa qué faltó para agregarlo desde *Editar*.
 
 ## Tiempo real (Socket.IO)
 

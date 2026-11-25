@@ -3,6 +3,7 @@
     class="drop"
     [class.is-dragging]="dragging()"
     [class.is-disabled]="disabled()"
+    [class.is-compact]="compact()"
     [style.background-image]="(previewUrl() ?? currentUrl()) ? 'url(' + (previewUrl() ?? currentUrl()) + ')' : null"
     role="button"
     tabindex="0"

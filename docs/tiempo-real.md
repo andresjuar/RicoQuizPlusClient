@@ -35,7 +35,7 @@ La fuente elegida y por qué está en el [README](../README.md#tiempo-real-socke
 
 ## Roles dentro de la partida (`*appIsHost` y `*appIsPlayer`)
 
-Las directivas estructurales `*appIsHost` y `*appIsPlayer` muestran un bloque según el rol en la sala (`RoomSession`). Se usan en el lobby (código de sala, cambiar quiz, iniciar partida contra "Esperando al anfitrión"), en la pregunta (contador de respuestas y "Revelar respuesta" contra "Respuesta enviada"), en el marcador ("Siguiente pregunta") y en los resultados ("Jugar de nuevo").
+Las directivas estructurales `*appIsHost` y `*appIsPlayer` muestran un bloque según el rol en la sala (`RoomSession`). Se usan en el lobby (código de sala, cambiar quiz, iniciar partida contra "Esperando al anfitrión"), en la pregunta (imagen de la pregunta, contador de respuestas y "Revelar respuesta" contra "Respuesta enviada"), en el marcador ("Siguiente pregunta") y en los resultados ("Jugar de nuevo").
 
 Ocultar no basta: el servidor valida cada acción (`NOT_HOST`) y nunca manda a los jugadores la respuesta correcta antes del reveal (el host recibe `correctIndex`, los jugadores no).
 
