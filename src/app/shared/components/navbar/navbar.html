@@ -17,6 +17,8 @@
     <div class="nav__actions">
       <ng-container *appHasRole="'user'">
         @let user = auth.user();
+        <!-- La conexión en tiempo real solo existe con sesión (se abre al iniciar sesión) -->
+        <app-connection-status />
         <a class="btn btn--ghost hide-mobile" routerLink="/quizzes/new">+ Crear quiz</a>
 
         <div class="nav__user">

@@ -5,7 +5,10 @@ import { AnswerRevealed, PublicQuestion } from '../../../../shared/models/game.m
 import { RoomSession } from '../../../../shared/services/room-session.service';
 import { AnswerOption, AnswerState } from '../answer-option/answer-option';
 
-type RevealResult = 'correct' | 'wrong' | 'none' | 'host';
+type RevealResult = 'correct' | 'wrong' | 'none' | 'host' | 'unknown';
+
+/** GameRoom usa -1 cuando el servidor dice que ya respondiste pero no se sabe qué opción (reconexión sin sessionStorage) */
+const UNKNOWN_ANSWER = -1;
 
 @Component({
   imports: [AnswerOption, IsHost, IsPlayer],
@@ -26,6 +29,8 @@ export class Reveal {
     if (this.session.isHost()) return 'host';
     const mine = this.myAnswer();
     if (mine === null) return 'none';
+    // No se califica lo que no se sabe: mejor "Respondiste" que un "Incorrecto" falso
+    if (mine === UNKNOWN_ANSWER) return 'unknown';
     return mine === this.revealed().correctIndex ? 'correct' : 'wrong';
   });
 
@@ -36,6 +41,7 @@ export class Reveal {
         wrong: 'Respuesta incorrecta',
         none: 'Se acabó el tiempo',
         host: 'Respuesta correcta',
+        unknown: 'Respondiste esta pregunta',
       })[this.result()],
   );
 

@@ -1,5 +1,6 @@
 import { DestroyRef, Injectable, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Observable, finalize, map, of, switchMap } from 'rxjs';
 import {
   AnswerCount,
   AnswerRevealed,
@@ -10,8 +11,8 @@ import {
   PublicPlayer,
   PublicQuestion,
 } from '../models/game.model';
-import { ROOM_CODE_LENGTH, ROOM_CODE_PATTERN, normalizeRoomCode } from '../models/match.model';
-import { QuizSummary } from '../models/quiz.model';
+import { Match, ROOM_CODE_LENGTH, ROOM_CODE_PATTERN, normalizeRoomCode } from '../models/match.model';
+import { QuizSummary, toSummary } from '../models/quiz.model';
 import {
   ClientEvent,
   ClientPayload,
@@ -20,8 +21,10 @@ import {
   RoomSyncData,
   SocketErrorPayload,
 } from '../models/socket-events.model';
+import { AnswerStorageService } from './answer-storage.service';
 import { AuthService } from './auth.service';
 import { MatchService } from './match.service';
+import { QuizService } from './quiz.service';
 import { RoomSession } from './room-session.service';
 import { SocketService } from './socket.service';
 import { ToastService } from './toast.service';
@@ -47,6 +50,8 @@ export class GameRoom {
   private readonly session = inject(RoomSession);
   private readonly auth = inject(AuthService);
   private readonly matches = inject(MatchService);
+  private readonly quizzes = inject(QuizService);
+  private readonly answers = inject(AnswerStorageService);
   private readonly toast = inject(ToastService);
   private readonly destroyRef = inject(DestroyRef);
 
@@ -64,6 +69,8 @@ export class GameRoom {
   private readonly _mySocketId = signal<string | null>(null);
   private readonly _matchId = signal<string | null>(null);
   private readonly _quiz = signal<QuizSummary | null>(null);
+  /** El host está cambiando o generando el quiz (con IA puede tardar varios segundos) */
+  private readonly _quizBusy = signal(false);
 
   readonly phase = this._phase.asReadonly();
   readonly errorMessage = this._errorMessage.asReadonly();
@@ -78,6 +85,7 @@ export class GameRoom {
   readonly gameOver = this._gameOver.asReadonly();
   readonly mySocketId = this._mySocketId.asReadonly();
   readonly quiz = this._quiz.asReadonly();
+  readonly quizBusy = this._quizBusy.asReadonly();
   readonly connectionStatus = this.socket.status;
   readonly isConnected = this.socket.isConnected;
 
@@ -156,17 +164,41 @@ export class GameRoom {
 
   /** PATCH /matches/:id/quiz — solo el host y mientras la partida esté en espera */
   changeQuiz(quiz: QuizSummary, opts: { silent?: boolean } = {}): void {
-    const matchId = this._matchId();
-    if (!matchId) {
-      this.toast.error('No se encontró la partida para cambiar el quiz.');
-      return;
-    }
+    const matchId = this.requireMatchId();
+    if (!matchId) return;
+    this._quizBusy.set(true);
     this.matches
       .selectQuiz(matchId, quiz._id)
-      .pipe(takeUntilDestroyed(this.destroyRef))
+      .pipe(
+        finalize(() => this._quizBusy.set(false)),
+        takeUntilDestroyed(this.destroyRef),
+      )
       .subscribe(() => {
         this._quiz.set(quiz);
         if (!opts.silent) this.toast.success(`Ahora la sala usa «${quiz.title}»`, 'Quiz cambiado');
+      });
+  }
+
+  /** POST /matches/:id/generate-quiz — la API genera el quiz con IA, lo guarda (privado) y lo asigna a la sala */
+  generateQuiz(topic: string, numQuestions: number): void {
+    const matchId = this.requireMatchId();
+    if (!matchId) return;
+    this._quizBusy.set(true);
+    this.matches
+      .generateQuiz(matchId, topic, numQuestions)
+      .pipe(
+        switchMap(match => this.loadQuiz(match)),
+        finalize(() => this._quizBusy.set(false)),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        next: quiz => {
+          if (!quiz) return;
+          this._quiz.set(quiz);
+          this.toast.success(`Se generaron ${quiz.questionCount} preguntas sobre ${topic}`, 'Quiz listo');
+        },
+        // Si falla la generación, el interceptor ya mostró el error; aquí solo se libera el estado
+        error: () => undefined,
       });
   }
 
@@ -177,6 +209,8 @@ export class GameRoom {
     if (!q || this._myAnswer() !== null) return;
     if (this.send('game:submit_answer', { questionIndex: q.questionIndex, answerIndex: index })) {
       this._myAnswer.set(index);
+      // Por si recarga: al reconectar, el servidor no dice qué opción eligió
+      this.answers.save(this.roomCode, q.questionIndex, index);
     }
   }
 
@@ -185,6 +219,7 @@ export class GameRoom {
     if (this.joined) this.socket.emit('room:leave');
     this.joined = false;
     this.joinPayload = null;
+    this.answers.clear();
   }
 
   /** Emite y, si no hay conexión, avisa en vez de fallar en silencio */
@@ -230,6 +265,7 @@ export class GameRoom {
     });
 
     on('game:question').subscribe(q => {
+      this.answers.clear(); // la respuesta guardada era de la pregunta anterior
       this._question.set(q);
       this._secondsLeft.set(q.timeLimitSeconds);
       this._myAnswer.set(null);
@@ -256,12 +292,14 @@ export class GameRoom {
     });
 
     on('game:over').subscribe(result => {
+      this.answers.clear();
       this._gameOver.set(result);
       this._leaderboard.set(result.leaderboard);
       this._phase.set('finished');
     });
 
     on('game:play_again_ok').subscribe(p => {
+      this.answers.clear();
       this._matchId.set(p.matchId);
       this._players.set(p.players);
       this.resetRound();
@@ -281,6 +319,9 @@ export class GameRoom {
     this._players.set(p.players);
     this.applySync(p.sync);
 
+    // El host entró por link (sin pasar por /room/new): no tiene el matchId ni el quiz de la sala
+    if (p.role === 'host' && !this._matchId()) this.loadHostMatch();
+
     if (p.isReconnect) this.toast.info('Te reconectaste a la partida');
     else if (p.isLateJoin) this.toast.info('La partida ya había empezado: entras desde la siguiente pregunta');
   }
@@ -297,7 +338,10 @@ export class GameRoom {
         this._question.set(sync.question);
         this._secondsLeft.set(sync.secondsLeft);
         if (!sync.alreadyAnswered) this._myAnswer.set(null);
-        else if (!sameQuestion || this._myAnswer() === null) this._myAnswer.set(UNKNOWN_ANSWER);
+        else if (!sameQuestion || this._myAnswer() === null) {
+          // El servidor no dice qué opción elegiste: se recupera de sessionStorage (UNKNOWN si no está)
+          this._myAnswer.set(this.answers.get(this.roomCode, sync.question.questionIndex) ?? UNKNOWN_ANSWER);
+        }
         this._phase.set('question');
         break;
       }
@@ -311,6 +355,7 @@ export class GameRoom {
         this._phase.set('leaderboard');
         break;
       case 'finished':
+        this.answers.clear();
         this._gameOver.set(sync.result);
         this._leaderboard.set(sync.result.leaderboard);
         this._phase.set('finished');
@@ -322,6 +367,7 @@ export class GameRoom {
     if (FATAL_CODES.includes(err.code)) {
       this.joined = false;
       this.joinPayload = null;
+      this.answers.clear();
       this.fail(err.message);
       return;
     }
@@ -337,6 +383,50 @@ export class GameRoom {
   private fail(message: string): void {
     this._errorMessage.set(message);
     this._phase.set('error');
+  }
+
+  /**
+   * Busca la partida de esta sala entre las del host (GET /matches/user/:id) para tener su matchId
+   * y su quiz. La API no tiene un endpoint "partida por código", pero esa lista ya trae ambas cosas.
+   */
+  private loadHostMatch(): void {
+    this._quizBusy.set(true);
+    this.matches
+      .findActiveByCode(this.roomCode)
+      .pipe(
+        switchMap(match => {
+          if (!match) return of(null);
+          this._matchId.set(match._id);
+          return this.loadQuiz(match);
+        }),
+        finalize(() => this._quizBusy.set(false)),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        next: quiz => {
+          if (quiz) this._quiz.set(quiz);
+          if (!this._matchId()) this.warnNoMatch();
+        },
+        // Peticiones silenciosas: la partida se puede jugar igual, solo no se podrá cambiar el quiz
+        error: () => this.warnNoMatch(),
+      });
+  }
+
+  private warnNoMatch(): void {
+    this.toast.warning('No pudimos cargar los datos de esta sala: no podrás cambiar el quiz desde aquí.');
+  }
+
+  /** Quiz de una partida como QuizSummary (la partida trae solo su id, o id y título) */
+  private loadQuiz(match: Match): Observable<QuizSummary | null> {
+    const quizId = typeof match.quiz === 'object' ? match.quiz._id : match.quiz;
+    if (!quizId) return of(null);
+    return this.quizzes.getById(quizId, { silent: true }).pipe(map(toSummary));
+  }
+
+  private requireMatchId(): string | null {
+    const matchId = this._matchId();
+    if (!matchId) this.toast.error('No se encontró la partida de esta sala. Recarga la página e inténtalo de nuevo.');
+    return matchId;
   }
 
   private resetRound(): void {

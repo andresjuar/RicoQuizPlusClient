@@ -66,24 +66,9 @@
           </div>
         </div>
       } @else {
-        <form class="ai__form card" (submit)="onGenerate($event)" novalidate>
-          <div class="field">
-            <label for="ai-topic">Tema</label>
-            <input id="ai-topic" class="input" type="text" placeholder="Ej. Historia del arte" maxlength="60"
-                   [formControl]="topic" />
-            @if (topic.touched && topic.invalid) {
-              <span class="field__error">Escribe un tema de 3 a 60 caracteres.</span>
-            }
-          </div>
-
-          <div class="ai__chips" aria-label="Sugerencias de tema">
-            @for (s of suggestions; track s) {
-              <button type="button" class="chip" (click)="useSuggestion(s)">{{ s }}</button>
-            }
-          </div>
-
-          <button type="submit" class="btn btn--primary">Generar quiz</button>
-        </form>
+        <div class="ai__form card">
+          <app-ai-quiz-form (generate)="onGenerate($event)" />
+        </div>
       }
     </section>
   }

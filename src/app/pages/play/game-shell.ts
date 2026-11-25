@@ -13,7 +13,7 @@ import { Leaderboard } from './components/leaderboard/leaderboard';
 import { Loading } from './components/loading/loading';
 import { Lobby } from './components/lobby/lobby';
 import { Question } from './components/question/question';
-import { QuizPickerData, QuizPickerDialog } from './components/quiz-picker-dialog/quiz-picker-dialog';
+import { QuizPickerData, QuizPickerDialog, QuizPickerResult } from './components/quiz-picker-dialog/quiz-picker-dialog';
 import { Reveal } from './components/reveal/reveal';
 import { RoomStatus } from './components/room-status/room-status';
 
@@ -21,6 +21,8 @@ type StatusTone = 'ok' | 'warn' | 'error' | 'final';
 
 // Fases sin partida en curso: ahí se puede salir sin confirmar
 const PHASES_WITHOUT_CONFIRM: GamePhase[] = ['connecting', 'error', 'guest-gate', 'finished'];
+// Fases en las que todavía no estás dentro de una sala
+const PHASES_WITHOUT_ROOM: GamePhase[] = ['connecting', 'error', 'guest-gate'];
 
 /**
  * Layout de pantalla completa de la partida (sin navbar). Una sola ruta (/play/:code);
@@ -63,6 +65,11 @@ export class GameShell implements GameLeaveState, OnInit {
     }
   });
 
+  /** Dentro de la sala y sin conexión: se desactivan las acciones y se muestra el aviso */
+  protected readonly offline = computed(
+    () => !PHASES_WITHOUT_ROOM.includes(this.room.phase()) && !this.room.isConnected(),
+  );
+
   ngOnInit(): void {
     // quiz y matchId solo llegan cuando el host viene de /room/new
     const state = history.state as { quiz?: QuizSummary; matchId?: string } | undefined;
@@ -74,19 +81,20 @@ export class GameShell implements GameLeaveState, OnInit {
     return !PHASES_WITHOUT_CONFIRM.includes(this.room.phase());
   }
 
-  // Host: elegir otro quiz en el lobby (PATCH /matches/:id/quiz)
+  // Host: elegir otro quiz (PATCH /matches/:id/quiz) o generar uno con IA (POST /matches/:id/generate-quiz)
   protected openQuizPicker(): void {
     const data: QuizPickerData = { currentId: this.room.quiz()?._id ?? '' };
     this.dialog
-      .open<QuizSummary, QuizPickerData>(QuizPickerDialog, {
+      .open<QuizPickerResult, QuizPickerData>(QuizPickerDialog, {
         data,
         width: '560px',
         maxWidth: 'calc(100vw - 32px)',
         backdropClass: 'rq-backdrop',
         autoFocus: 'dialog',
       })
-      .closed.subscribe(picked => {
-        if (picked) this.room.changeQuiz(picked);
+      .closed.subscribe(result => {
+        if (result?.kind === 'existing') this.room.changeQuiz(result.quiz);
+        else if (result?.kind === 'ai') this.room.generateQuiz(result.topic, result.numQuestions);
       });
   }
 

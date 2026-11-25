@@ -5,11 +5,12 @@ import { Avatar } from '../avatar/avatar';
 import { ConfirmService } from '../../services/confirm.service';
 import { ToastService } from '../../services/toast.service';
 import { HasRole } from '../../directives/has-role';
+import { ConnectionStatus } from '../connection-status/connection-status';
 
 
 @Component({
   selector: 'app-navbar',
-  imports: [RouterLink, RouterLinkActive, Avatar, HasRole],
+  imports: [RouterLink, RouterLinkActive, Avatar, HasRole, ConnectionStatus],
   templateUrl: './navbar.html',
   styleUrl: './navbar.scss',
 })

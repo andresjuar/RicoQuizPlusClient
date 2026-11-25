@@ -51,3 +51,28 @@
     color: #fff;
   }
 }
+.dialog__hint { font-size: var(--fs-sm); color: var(--text-muted); }
+
+// Pestañas "Elegir existente" / "Generar con IA" (mismo estilo que en Nueva partida)
+.seg {
+  align-self: flex-start;
+  display: inline-flex;
+  padding: var(--sp-1);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+
+  &__btn {
+    padding: var(--sp-2) var(--sp-4);
+    border: none;
+    border-radius: var(--radius-full);
+    background: transparent;
+    font-weight: 600;
+    font-size: var(--fs-sm);
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: background var(--transition), color var(--transition);
+
+    &--on { background: var(--primary); color: #fff; }
+  }
+}

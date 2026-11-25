@@ -22,6 +22,8 @@ export class Question {
   readonly myAnswer = input.required<number | null>();
   /** Solo lo recibe el host (evento game:answer_count) */
   readonly answerCount = input<AnswerCount | null>(null);
+  /** Sin conexión en tiempo real: las acciones se desactivan (GameShell muestra el aviso) */
+  readonly offline = input(false);
 
   readonly answer = output<number>();
   /** El host fuerza el reveal antes de que se acabe el tiempo (game:reveal_answer) */
@@ -30,7 +32,7 @@ export class Question {
   private readonly isHost = this.session.isHost;
   // El host no juega: nunca tiene respuesta propia
   protected readonly answered = computed(() => !this.isHost() && this.myAnswer() !== null);
-  protected readonly locked = computed(() => this.isHost() || this.answered() || this.secondsLeft() <= 0);
+  protected readonly locked = computed(() => this.isHost() || this.answered() || this.secondsLeft() <= 0 || this.offline());
 
   // questionIndex viene en base 0: la pregunta 3 es el índice 2
   protected readonly progress = computed(

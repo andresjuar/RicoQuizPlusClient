@@ -20,6 +20,7 @@
     &[data-result='wrong'] { --banner-color: var(--danger); }
     &[data-result='none'] { --banner-color: var(--warning); }
     &[data-result='host'] { --banner-color: var(--info); }
+    &[data-result='unknown'] { --banner-color: var(--info); }
   }
 
   &__icon {

@@ -8,6 +8,13 @@
     </span>
   </header>
 
+  @if (offline()) {
+    <div class="offline" role="alert">
+      <span class="offline__spinner" aria-hidden="true"></span>
+      Sin conexión, reconectando… Las acciones se activan de nuevo al volver la conexión.
+    </div>
+  }
+
   <main class="shell__content">
     @switch (room.phase()) {
       @case ('connecting') {
@@ -20,8 +27,8 @@
         <app-guest-gate [code]="code()" (joined)="room.join($event)" />
       }
       @case ('lobby') {
-        <app-lobby [code]="code()" [players]="room.players()" [quiz]="room.quiz()"
-                   (start)="room.start()" (changeQuiz)="openQuizPicker()" />
+        <app-lobby [code]="code()" [players]="room.players()" [quiz]="room.quiz()" [quizBusy]="room.quizBusy()"
+                   [offline]="offline()" (start)="room.start()" (changeQuiz)="openQuizPicker()" />
       }
       @case ('loading') {
         <app-loading />
@@ -29,7 +36,7 @@
       @case ('question') {
         @if (room.question(); as q) {
           <app-question [question]="q" [secondsLeft]="room.secondsLeft()" [myAnswer]="room.myAnswer()"
-                        [answerCount]="room.answerCount()"
+                        [answerCount]="room.answerCount()" [offline]="offline()"
                         (answer)="room.answer($event)" (reveal)="room.revealNow()" />
         }
       }
@@ -42,10 +49,10 @@
       }
       @case ('leaderboard') {
         <app-leaderboard [entries]="room.leaderboard()" [mySocketId]="room.mySocketId()"
-                         [isLast]="room.isFinalRound()" (next)="room.nextQuestion()" />
+                         [isLast]="room.isFinalRound()" [offline]="offline()" (next)="room.nextQuestion()" />
       }
       @case ('finished') {
-        <app-final-results [entries]="room.leaderboard()" [mySocketId]="room.mySocketId()"
+        <app-final-results [entries]="room.leaderboard()" [mySocketId]="room.mySocketId()" [offline]="offline()"
                            (playAgain)="room.playAgain()" (leave)="onLeave()" />
       }
     }

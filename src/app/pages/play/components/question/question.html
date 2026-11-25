@@ -40,7 +40,7 @@
         <div class="q__count-bar"><span class="q__count-fill" [style.width.%]="answeredPct()"></span></div>
       </div>
     }
-    <button type="button" class="btn btn--success btn--block" (click)="reveal.emit()">Revelar respuesta</button>
+    <button type="button" class="btn btn--success btn--block" [disabled]="offline()" (click)="reveal.emit()">Revelar respuesta</button>
   </div>
 
   <ng-container *appIsPlayer>

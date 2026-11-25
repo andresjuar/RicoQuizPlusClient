@@ -15,7 +15,7 @@ El cliente consume la API propia de RicoQuiz+ (Express + MongoDB), construida en
 | Manejo centralizado de errores y estados de carga | Listo |
 | Autenticación y roles: sesión con JWT, guardias de ruta, directiva *appHasRole y vistas 403/404 | Listo |
 | Partida en vivo por Socket.IO: crear sala, unirse, jugar, marcador, fin y jugar de nuevo | Listo (ver [Tiempo real](#tiempo-real-socketio)) |
-| Indicador de conexión, reconexión automática y resincronización | Listo dentro de la partida |
+| Indicador de conexión (navbar y partida), reconexión automática y resincronización | Listo |
 | Subida, visualización y descarga de archivos | Pendiente |
 | Despliegue del cliente en Netlify | Listo |
 | ESLint y CI | Pendiente |
@@ -216,10 +216,11 @@ Todas las respuestas de error tienen la forma `{ "message": string, "errores"?: 
 | DELETE | `/quizzes/:id` | Bearer (dueño) | Eliminar quiz |
 | POST | `/quizzes/generate-questions` | Bearer | Preguntas con IA (sin guardar) |
 | POST | `/quizzes/generate` | Bearer | Generar y guardar un quiz con IA (Nueva partida) |
-| GET | `/matches/user/:userId` | — | Historial |
+| GET | `/matches/user/:userId` | — | Historial, y encontrar la partida de la sala cuando el host entra por link |
 | GET | `/matches/rooms/:code/exists` | — | Unirse con código |
 | POST | `/matches` | Bearer | Crear sala (Nueva partida); regresa el `roomCode` |
 | PATCH | `/matches/:id/quiz` | Bearer (host) | Cambiar el quiz de la sala en el lobby |
+| POST | `/matches/:id/generate-quiz` | Bearer (host) | Generar con IA (tema y número de preguntas) el quiz de la sala desde el lobby |
 
 Los eventos de Socket.IO están en [docs/tiempo-real.md](./docs/tiempo-real.md#contrato-de-eventos).
 

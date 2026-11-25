@@ -11,6 +11,8 @@ La fuente elegida y por qué está en el [README](../README.md#tiempo-real-socke
 | `SocketService` | `shared/services/socket.service.ts` | **Única conexión** de toda la app (`providedIn: 'root'`). Manda el token, expone `status()` y `on()`/`emit()` tipados. Ningún componente llama a `io()` |
 | `GameRoom` | `shared/services/game-room.service.ts` | Estado de *una* partida (fase, jugadores, pregunta, marcador…). Se provee en `GameShell`, así que existe solo mientras estás en `/play/:code` |
 | `RoomSession` | `shared/services/room-session.service.ts` | Rol en la sala (`host`/`player`) que asigna el servidor. Lo leen `*appIsHost` y `*appIsPlayer` |
+| `AnswerStorageService` | `shared/services/answer-storage.service.ts` | Guarda en `sessionStorage` la respuesta de la pregunta actual para recuperarla al recargar |
+| `ConnectionStatus` | `shared/components/connection-status/connection-status.ts` | Indicador verde, amarillo o rojo del estado de la conexión (navbar) |
 | Contrato | `shared/models/socket-events.model.ts` | Tipos de todos los eventos (espejo de `match.types.ts` del backend) |
 | Vistas | `pages/play/` | `GameShell` decide la vista por la fase; los componentes solo leen signals y emiten acciones |
 
@@ -23,12 +25,13 @@ La fuente elegida y por qué está en el [README](../README.md#tiempo-real-socke
 
 ## Estado de la conexión y reconexión
 
-- **Indicador:** la barra superior de la partida muestra *Conectando*, *Reconectando…*, *Sin conexión* o la fase actual (*Sala abierta*, *En juego*, *Final*). Sale de `SocketService.status()`.
+- **Indicador:** con sesión, la navbar muestra siempre el estado de la conexión: verde *Conectado*, amarillo *Conectando…* o *Reconectando…* y rojo *Sin conexión* (en móvil solo el punto). Dentro de la partida, la barra superior muestra lo mismo o la fase actual (*Sala abierta*, *En juego*, *Final*). Ambos salen de `SocketService.status()`.
 - **Reconexión automática:** la hace Socket.IO. Si el servidor corta la conexión (`io server disconnect`), que es el único caso en que Socket.IO no reintenta solo, `SocketService` vuelve a conectar.
 - **Resincronización:** en cada reconexión, `GameRoom` reenvía `room:join` con el mismo código y nombre. El backend reconoce a la persona (por `userId` o nombre de invitado), le conserva el puntaje y responde `room:joined_ok` con `sync`, el estado actual de la sala (lobby, pregunta con segundos restantes, reveal, marcador o final). La vista se reconstruye desde ahí sin recargar.
 - **Periodo de gracia del servidor:** un jugador tiene 30 s para volver; el host, 5 s. Si el host no vuelve, la sala se cancela y todos ven "No pudimos entrar a la sala".
 - **Limpieza:** `SocketService.on()` regresa un Observable que quita su listener al desuscribirse, y `GameRoom` se suscribe con `takeUntilDestroyed`. Al salir de `/play/:code` se envía `room:leave` y se quitan todos los listeners, así que no se duplican eventos al volver a entrar.
-- **Acciones sin conexión:** `emit()` regresa `false` si no hay conexión; en ese caso no se envía nada y se muestra el aviso "Sin conexión con el servidor. Espera a que se reconecte e inténtalo de nuevo."
+- **Acciones sin conexión:** si se pierde la conexión dentro de la sala, aparece el aviso "Sin conexión, reconectando…" y se desactivan los botones que dependen del servidor (*Iniciar partida*, *Cambiar quiz*, las respuestas, *Revelar respuesta*, *Siguiente pregunta* y *Jugar de nuevo*). Se reactivan solos al volver la conexión. Por si algo se envía justo en ese momento, `emit()` regresa `false` sin enviar nada y se muestra un aviso, en vez de fallar en silencio.
+- **Respuesta tras recargar:** al reconectarse, el servidor solo dice `alreadyAnswered: true`, no qué opción elegiste. Por eso `GameRoom` guarda la respuesta de la pregunta actual en `sessionStorage` (una sola entrada, llave `rq_answer`) y la recupera al resincronizar; así el reveal califica bien. La entrada se borra en cada pregunta nueva, al terminar la partida, al jugar de nuevo, si la sala se cancela y al salir de la sala, así que no queda nada guardado después de jugar. Si no está (por ejemplo, otra pestaña), el reveal dice "Respondiste esta pregunta" en vez de calificar.
 
 ## Roles dentro de la partida (`*appIsHost` y `*appIsPlayer`)
 
@@ -79,6 +82,11 @@ Namespace `/matches`. Los tipos están en `src/app/shared/models/socket-events.m
 | `game:over` | `{ winner, leaderboard }` | Todos | Podio y clasificación final |
 | `game:play_again_ok` | `{ matchId, players }` | Todos | Regresa al lobby; el host reasigna el quiz a la partida nueva |
 | `error` | `{ code, message }` | Quien causó el error (o toda la sala si se cancela) | `ROOM_NOT_FOUND`, `ROOM_FINISHED` y `ROOM_CANCELLED` muestran la pantalla de error; el resto, un toast |
+
+## El quiz de la sala (lobby del host)
+
+- **Elegir o cambiar quiz:** el diálogo del lobby tiene dos pestañas: *Elegir existente* (`PATCH /matches/:id/quiz`) y *Generar con IA*, donde el host escribe el tema y elige cuántas preguntas (5, 10, 15 o 20). La generación usa `POST /matches/:id/generate-quiz`: la API crea el quiz (privado, en *Mis quizzes*) y lo asigna a la sala. Mientras tanto, el lobby muestra "Preparando el quiz…" y desactiva *Iniciar partida*. *Nueva partida* usa el mismo formulario (`<app-ai-quiz-form>`).
+- **Host que entra por link:** `room:joined_ok` no trae el `matchId`, y la API no tiene un endpoint "partida por código". Si el host no viene de *Nueva partida*, `GameRoom` busca la sala entre sus partidas recientes (`GET /matches/user/:id`, que ya trae el `matchId` y el quiz) y carga el quiz. Si no la encuentra, avisa que no podrá cambiar el quiz, pero la partida se puede jugar igual.
 
 ## Cómo probarlo
 

@@ -59,3 +59,7 @@ export function toSummary(quiz: Quiz): QuizSummary {
     totalSeconds: quiz.questions.reduce((sum, q) => sum + q.timeLimitSeconds, 0),
   };
 }
+/** Cantidades de preguntas que se ofrecen al generar un quiz con IA (la API acepta de 1 a 20) */
+export const AI_QUESTION_COUNTS = [5, 10, 15, 20] as const;
+export const DEFAULT_AI_QUESTION_COUNT = 10;
+export const AI_TOPIC_SUGGESTIONS = ['Espacio', 'Historia de México', 'Cine', 'Gastronomía', 'Fútbol'];

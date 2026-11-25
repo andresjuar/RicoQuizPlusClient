@@ -14,7 +14,7 @@
   </ol>
 
   <footer class="lb__footer">
-    <button *appIsHost type="button" class="btn btn--success btn--block" (click)="next.emit()">
+    <button *appIsHost type="button" class="btn btn--success btn--block" [disabled]="offline()" (click)="next.emit()">
       {{ isLast() ? 'Ver resultados finales' : 'Siguiente pregunta' }}
     </button>
     <p *appIsPlayer class="lb__wait" role="status">Esperando al anfitrión…</p>

@@ -23,6 +23,10 @@ export class Lobby {
   readonly players = input.required<PublicPlayer[]>();
   /** Quiz de la sala; solo se muestra al host */
   readonly quiz = input<QuizSummary | null>(null);
+  /** Se está cargando, cambiando o generando el quiz */
+  readonly quizBusy = input(false);
+  /** Sin conexión en tiempo real: las acciones se desactivan (GameShell muestra el aviso) */
+  readonly offline = input(false);
 
   readonly start = output<void>();
   /** El host quiere elegir otro quiz (lo abre el shell) */

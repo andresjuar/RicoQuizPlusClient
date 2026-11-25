@@ -17,6 +17,8 @@ export class Leaderboard {
   readonly mySocketId = input<string | null>(null);
   /** Viene como `isFinalRound` en game:leaderboard: cambia el texto del botón */
   readonly isLast = input(false);
+  /** Sin conexión en tiempo real: las acciones se desactivan (GameShell muestra el aviso) */
+  readonly offline = input(false);
 
   /** Solo el host avanza (game:next_question) */
   readonly next = output<void>();

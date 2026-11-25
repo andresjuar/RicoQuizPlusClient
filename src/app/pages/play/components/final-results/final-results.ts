@@ -15,6 +15,8 @@ export class FinalResults {
   readonly entries = input.required<LeaderboardEntry[]>();
   /** socketId del jugador actual, para resaltar su fila */
   readonly mySocketId = input<string | null>(null);
+  /** Sin conexión en tiempo real: las acciones se desactivan (GameShell muestra el aviso) */
+  readonly offline = input(false);
 
   /** Solo el host (*appIsHost): game:play_again */
   readonly playAgain = output<void>();
