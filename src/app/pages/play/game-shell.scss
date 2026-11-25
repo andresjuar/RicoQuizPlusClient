@@ -58,20 +58,4 @@
   color: var(--warning);
   background: color-mix(in srgb, var(--warning) 14%, transparent);
   border-bottom: 1px solid color-mix(in srgb, var(--warning) 30%, transparent);
-
-  &__spinner {
-    flex-shrink: 0;
-    width: 14px;
-    height: 14px;
-    border: 2px solid currentColor;
-    border-right-color: transparent;
-    border-radius: 50%;
-    animation: offline-spin 0.8s linear infinite;
-  }
-}
-
-@keyframes offline-spin { to { transform: rotate(360deg); } }
-
-@media (prefers-reduced-motion: reduce) {
-  .offline__spinner { animation: none; }
 }

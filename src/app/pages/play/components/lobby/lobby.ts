@@ -7,10 +7,11 @@ import { IsHost } from '../../../../shared/directives/is-host';
 import { IsPlayer } from '../../../../shared/directives/is-player';
 import { ToastService } from '../../../../shared/services/toast.service';
 import { PlayerChip } from '../player-chip/player-chip';
+import { RoomQr } from '../room-qr/room-qr';
 
 /** Lo que ve cada quien lo deciden *appIsHost / *appIsPlayer (rol que asigna el servidor en RoomSession) */
 @Component({
-  imports: [CopyToClipboard, IsHost, IsPlayer, PlayerChip],
+  imports: [CopyToClipboard, IsHost, IsPlayer, PlayerChip, RoomQr],
   selector: 'app-lobby',
   styleUrl: './lobby.scss',
   templateUrl: './lobby.html',
@@ -41,6 +42,9 @@ export class Lobby {
 
   // 4 letras del backend, siempre en mayúsculas aunque la URL venga en minúsculas: "qwer" -> "QWER"
   protected readonly formattedCode = computed(() => normalizeRoomCode(this.code()));
+
+  /** Link que codifica el QR: misma app (local o Netlify) + /play/<CÓDIGO> */
+  protected readonly joinUrl = computed(() => `${location.origin}/play/${this.formattedCode()}`);
 
   protected onCopied(ok: boolean): void {
     if (ok) this.toast.success('Código de sala copiado');
